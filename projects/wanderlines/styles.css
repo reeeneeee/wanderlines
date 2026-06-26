@@ -1,4 +1,4 @@
-/* All colour + font come from CSS variables the app sets per theme — token-driven. */
+/* Every colour + font is a CSS variable the app sets per theme — fully token-driven. */
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
@@ -11,19 +11,20 @@ body {
 .wrap { max-width: 560px; margin: 0 auto; }
 .brand {
   font-family: var(--font-display);
-  letter-spacing: .18em; text-transform: uppercase; font-size: 22px;
+  letter-spacing: .14em; text-transform: uppercase; font-size: 24px;
   margin: 6px 0 2px;
 }
 .brand small { display: block; font-size: 9px; letter-spacing: .3em; color: var(--accent); }
 .lead { color: var(--muted); font-size: 13px; margin: 0 0 16px; }
+.bar-label { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin: 14px 0 6px; }
 
-#themebar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-.chip {
+#themebar, #units { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip, #units button {
   display: inline-flex; align-items: center; gap: 7px;
   border: 1px solid var(--rule); background: var(--paper); color: var(--ink);
   border-radius: 20px; padding: 7px 12px; font: inherit; font-size: 13px; cursor: pointer;
 }
-.chip.on { box-shadow: inset 0 0 0 2px var(--accent); border-color: var(--accent); }
+.chip.on, #units button.on { box-shadow: inset 0 0 0 2px var(--accent); border-color: var(--accent); }
 .chip .sw { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 0 1px #0002; }
 
 .card {
@@ -34,21 +35,23 @@ body {
 .card h2 { font-family: var(--font-display); margin: 0; font-size: 19px; }
 .rate { color: var(--accent2); white-space: nowrap; letter-spacing: 1px; }
 .rate .off { color: var(--rule); }
-.meta { color: var(--muted); font-size: 12px; margin: 3px 0 12px; }
+.meta { color: var(--muted); font-size: 12px; margin: 4px 0 12px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.meta .vic { color: var(--ink); }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
 .stats div {
   background: var(--ocean); border: 1px solid var(--rule); border-radius: 11px;
   padding: 10px 8px; text-align: center;
 }
 .stats b { display: block; font-size: 20px; font-weight: 700; }
-.stats span { font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stats span { font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .stops { display: flex; flex-wrap: wrap; gap: 6px; }
 .stop {
   display: inline-flex; align-items: center; gap: 6px; font-size: 12px;
   border: 1px solid var(--rule); border-radius: 16px; padding: 4px 10px;
 }
 .stop b {
-  background: var(--accent); color: #fff; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--accent); color: var(--on-accent); width: 16px; height: 16px; border-radius: 50%;
   font-size: 10px; display: inline-flex; align-items: center; justify-content: center;
 }
+.stop .kic { color: var(--ink); display: inline-flex; }
 .hl { margin-top: 10px; font-style: italic; color: var(--muted); font-size: 14px; }

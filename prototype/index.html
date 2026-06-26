@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>Wanderlines</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Caveat:wght@400;600;700&family=EB+Garamond:ital@0;1&family=Inter:wght@400;600;700&family=Jost:wght@400;500;700&family=Patrick+Hand&family=Quicksand:wght@400;600;700&family=Righteous&family=Shadows+Into+Light&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&family=Bungee&family=Caveat:wght@400;600;700&family=EB+Garamond:ital@0;1&family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;600;700&family=Jost:wght@400;500;700&family=Monoton&family=Patrick+Hand&family=Quicksand:wght@400;600;700&family=Righteous&family=Shadows+Into+Light&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <style>
@@ -15,6 +15,7 @@
     --paper:#f8eccf; --ink:#2a1d14; --muted:#9a7e57; --rule:#d6a347;
     --field:#fff7e6; --hover:#fdeecb; --accent:#df4d12; --accent2:#0c8a6f; --gold:#eaa314;
     --c-lived:#df4d12; --c-visited:#0c8a6f; --on-accent:#fff;
+    --photo-filter:sepia(.22) saturate(1.15) contrast(1.05); --grain-opacity:.14;
     --font:"Jost",-apple-system,"Segoe UI",sans-serif;
     --font-display:"Bungee","Jost",sans-serif; --font-hand:"Caveat",cursive;
   }
@@ -24,42 +25,47 @@
     --paper:#16181c; --ink:#eef1f5; --muted:#99a0ac; --rule:#33373f;
     --field:#1f2228; --hover:#262a31; --accent:#c4ccd6; --accent2:#878f9b; --gold:#d6dce4;
     --c-lived:#d2d8e0; --c-visited:#7f8893;
+    --photo-filter:grayscale(.45) contrast(1.12) brightness(1.02); --grain-opacity:.1;
     --font:"Inter",-apple-system,"Helvetica Neue",Arial,sans-serif;
-    --font-display:"Inter",sans-serif; --font-hand:"Caveat",cursive;
+    --font-display:"Space Grotesk","Inter",sans-serif; --font-hand:"Caveat",cursive;
   }
   [data-theme="disco"]{ /* disco — maximalist neon */
     --ocean:#16022c; --ocean-hi:#2a0750; --land:#2b0a47; --land-stroke:#ff2bd6;
     --paper:#1d0636; --ink:#fdeeff; --muted:#c79be0; --rule:#7a2bd0;
     --field:#270a40; --hover:#350b54; --accent:#ff2bd6; --accent2:#1fe3cb; --gold:#f5e63d;
     --c-lived:#ff2bd6; --c-visited:#1fe3cb;
+    --photo-filter:saturate(1.6) contrast(1.1) hue-rotate(-6deg); --grain-opacity:.16;
     --font:"Righteous",-apple-system,"Segoe UI",sans-serif;
-    --font-display:"Righteous",sans-serif; --font-hand:"Caveat",cursive;
+    --font-display:"Monoton","Righteous",sans-serif; --font-hand:"Caveat",cursive;
   }
   [data-theme="earthy"]{ /* earthy — forest palette */
     --ocean:#dce4d1; --ocean-hi:#eef1e4; --land:#3a4a32; --land-stroke:#eef0e3;
     --paper:#eef0e3; --ink:#26301f; --muted:#7c8a6c; --rule:#a8b58f;
     --field:#f7f9ef; --hover:#e9eedd; --accent:#5b7a3a; --accent2:#a3672f; --gold:#bf8f33;
     --c-lived:#a3672f; --c-visited:#5b7a3a;
+    --photo-filter:sepia(.18) saturate(.92) contrast(1.02); --grain-opacity:.13;
     --font:"Georgia","Iowan Old Style",serif;
-    --font-display:"Georgia",serif; --font-hand:"Caveat",cursive;
+    --font-display:"Fraunces","Georgia",serif; --font-hand:"Caveat",cursive;
   }
   [data-theme="cute"]{ /* cute — soft pastels, muted pink & butter */
     --ocean:#fdf4f9; --ocean-hi:#fffafd; --land:#ecd9e6; --land-stroke:#fffafd;
     --paper:#fdf5fa; --ink:#6f5a64; --muted:#bda4b4; --rule:#f0d3e0;
     --field:#fffbfe; --hover:#fbeef6; --accent:#f3a6c6; --accent2:#f3d089; --gold:#f1cd7c;
     --c-lived:#f1a3c4; --c-visited:#eccb84;
+    --photo-filter:saturate(1.12) brightness(1.05) contrast(.96); --grain-opacity:.08;
     --font:"Quicksand",-apple-system,"Segoe UI",sans-serif;
-    --font-display:"Quicksand",sans-serif; --font-hand:"Patrick Hand",cursive;
+    --font-display:"Baloo 2","Quicksand",sans-serif; --font-hand:"Patrick Hand",cursive;
   }
   [data-theme="classic"]{ /* classic — Conté à Paris, hand-drawn sketch */
     --ocean:#ece2cd; --ocean-hi:#f5eedd; --land:#dccdab; --land-stroke:#6b513a;
     --paper:#f1e8d3; --ink:#3a2f25; --muted:#9a8467; --rule:#c3ad84;
     --field:#f6efdd; --hover:#ece0c6; --accent:#a6442e; --accent2:#4a5a6a; --gold:#9a6b34;
     --c-lived:#a6442e; --c-visited:#4a5a6a;
+    --photo-filter:sepia(.5) contrast(1.06) brightness(1.02); --grain-opacity:.2;
     --font:"EB Garamond","Hoefler Text",Georgia,serif;
     --font-display:"Caveat",cursive; --font-hand:"Shadows Into Light",cursive;
   }
-  :root{ --hdr:64px; --font-display:var(--font); --font-hand:"Caveat",cursive; }
+  :root{ --hdr:64px; }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;height:100%;overflow:hidden;color:var(--ink);background:var(--ocean);
     font-family:var(--font)}
@@ -295,7 +301,7 @@
   .trav{display:flex;gap:8px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #00000010}
   .trav:last-of-type{border-bottom:none}
   .trav .ti{flex:1;display:grid;grid-template-columns:1fr 70px;gap:6px}
-  .trav .avatar{width:40px;height:40px;border-radius:50%;border:1px solid var(--rule);background:var(--field);font-size:21px;cursor:pointer;flex:none;line-height:1;padding:0}
+  .trav .avatar{width:40px;height:40px;border-radius:50%;border:none;color:#fff;font-weight:700;font-size:17px;cursor:pointer;flex:none;line-height:1;padding:0;display:flex;align-items:center;justify-content:center}
   .stars{display:flex;gap:5px;font-size:28px}
   .stars .star{color:var(--rule);cursor:pointer;line-height:1}
   .stars .star.on{color:var(--gold)}
@@ -303,7 +309,34 @@
   .rev-q .seg button{min-width:auto;padding:8px 9px;font-size:12px}
   .vehicles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
   .veh{display:flex;flex-direction:column;align-items:center;gap:3px;border:1px solid var(--rule);background:var(--field);border-radius:11px;padding:9px 4px;cursor:pointer;font:inherit}
-  .veh.on{background:var(--accent);border-color:var(--accent)}
+  .veh.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  .si svg{display:block}
+  .nav-item.active .ic{color:var(--accent)}
+  /* accordion sections in a journey */
+  .acc{padding:0}
+  .acc>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .acc>summary::-webkit-details-marker{display:none}
+  .acc>summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);
+    transform:rotate(45deg);transition:transform .2s;margin-top:-4px}
+  .acc[open]>summary::after{transform:rotate(-135deg);margin-top:3px}
+  .acc-body{padding:0 16px 16px}
+  .remember{margin-bottom:4px}
+  .rem-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #00000012;font-size:14px}
+  .rem-item:last-child{border-bottom:none}
+  .rem-del{cursor:pointer;color:var(--accent);font-weight:700;flex:none}
+  .rem-add{display:flex;gap:8px;margin-top:10px}
+  .rem-add input{flex:1;min-width:0;border:1px solid var(--rule);background:var(--field);border-radius:8px;padding:9px 11px;font:inherit;font-size:13px;color:var(--ink)}
+  .acc-controls{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin:-2px 0 12px}
+  .acc-controls button{background:none;border:none;color:var(--accent);font:inherit;font-size:12px;cursor:pointer;padding:2px 4px;text-decoration:underline}
+  .acc-controls span{color:var(--muted)}
+  #route-name{cursor:pointer;text-decoration:underline}
+  /* one photo per journal entry — framed, with a per-vibe filter + grain */
+  .je-photo{margin:8px 0;border:5px solid var(--paper);box-shadow:0 0 0 1px var(--rule),0 4px 12px #0003;border-radius:4px;overflow:hidden;position:relative;line-height:0}
+  .je-photo img{width:100%;display:block;filter:var(--photo-filter,none)}
+  .je-photo::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:var(--grain-opacity,.12);mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  .je-photo-pick{display:inline-block;margin:8px 0 0;border:1px dashed var(--rule);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--muted);cursor:pointer}
   .veh .vic{font-size:23px;line-height:1}
   .veh .vlb{font-size:10px;color:var(--muted)}
   .veh.on .vlb{color:var(--on-accent)}
@@ -314,8 +347,12 @@
   .je-share,.je-del{cursor:pointer;color:var(--muted);font-size:15px}
   .je-share:hover{color:var(--accent)}
   .je-body{font-family:var(--font-hand);font-size:20px;line-height:1.42;white-space:pre-wrap}
-  .je-new input[type=date]{width:100%;border:1px solid var(--rule);background:var(--field);border-radius:8px;padding:9px 11px;font:inherit;font-size:13px;margin-bottom:8px;color:var(--ink)}
   .je-new textarea{width:100%;border:1px solid var(--rule);background:var(--field);border-radius:8px;padding:9px 11px;font:inherit;font-size:13px;min-height:60px;resize:vertical;color:var(--ink)}
+  /* normalise native date inputs so they match every other field box */
+  input[type=date]{-webkit-appearance:none;appearance:none;height:42px;line-height:1.2;color:var(--ink);background:var(--field)}
+  input[type=date]::-webkit-calendar-picker-indicator{opacity:.5;cursor:pointer}
+  input[type=date]::-webkit-date-and-time-value{text-align:left}
+  .je-new input[type=date]{width:100%;border:1px solid var(--rule);border-radius:8px;padding:0 11px;font:inherit;font-size:13px;margin-bottom:8px}
   .trav input{border:1px solid var(--rule);background:var(--field);border-radius:7px;padding:7px 9px;font:inherit;font-size:13px;width:100%;min-width:0}
   .trav .tdiet{grid-column:1 / -1}
   .trav .trm{color:var(--accent);font-weight:700;cursor:pointer;padding:6px 2px;flex:none}
@@ -371,11 +408,11 @@
       <div class="navbtn" id="navbtn"><span></span><span></span><span></span></div>
     </div>
     <nav id="nav">
-      <div class="nav-item active" data-view="world"><div class="ic">🗺️</div><div class="tx">World Map<small>scratch off countries</small></div></div>
-      <div class="nav-item" data-view="journeys"><div class="ic">🧭</div><div class="tx">Journeys<small>routes you've travelled</small></div></div>
-      <div class="nav-item" data-view="regions"><div class="ic">📍</div><div class="tx">Regions<small>states &amp; provinces</small></div></div>
-      <div class="nav-item" data-view="lists"><div class="ic">📑</div><div class="tx">Lists<small>by year · visited · wishlist</small></div></div>
-      <div class="nav-item" data-view="account"><div class="ic">👤</div><div class="tx">Account<small>profile &amp; stats</small></div></div>
+      <div class="nav-item active" data-view="world"><div class="ic" data-icon="world" data-isz="20"></div><div class="tx">World Map<small>scratch off countries</small></div></div>
+      <div class="nav-item" data-view="journeys"><div class="ic" data-icon="compass" data-isz="20"></div><div class="tx">Journeys<small>routes you've travelled</small></div></div>
+      <div class="nav-item" data-view="regions"><div class="ic" data-icon="pin" data-isz="20"></div><div class="tx">Regions<small>states &amp; provinces</small></div></div>
+      <div class="nav-item" data-view="lists"><div class="ic" data-icon="list" data-isz="20"></div><div class="tx">Lists<small>by year · visited · wishlist</small></div></div>
+      <div class="nav-item" data-view="account"><div class="ic" data-icon="person" data-isz="20"></div><div class="tx">Account<small>profile &amp; stats</small></div></div>
     </nav>
   </header>
 
@@ -385,11 +422,11 @@
       <svg class="map" id="world-svg"></svg>
       <div class="mapctl">
         <div class="searchbox">
-          <span class="si">🔍</span>
+          <span class="si" data-icon="search" data-isz="15"></span>
           <input id="search-in" placeholder="Find a country…" autocomplete="off"/>
           <div id="search-res" class="sres"></div>
         </div>
-        <button class="ctlbtn" id="layers-btn" title="Landmarks">📍</button>
+        <button class="ctlbtn" id="layers-btn" data-icon="pin" data-isz="18" title="Landmarks"></button>
       </div>
       <div id="layers-menu">
         <h3>Landmarks</h3>
@@ -401,7 +438,7 @@
       <div class="fab" id="share-fab" title="Share">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><line x1="8.3" y1="10.8" x2="15.7" y2="6.2"/><line x1="8.3" y1="13.2" x2="15.7" y2="17.8"/></svg>
       </div>
-      <div id="route-banner"><span>🧭 <b id="route-name"></b></span><span class="x" id="route-clear" title="Clear route">✕</span></div>
+      <div id="route-banner"><span style="display:flex;align-items:center;gap:7px"><span data-icon="compass" data-isz="15"></span><b id="route-name"></b></span><span class="x" id="route-clear" title="Clear route">✕</span></div>
       <div id="sheet"></div>
       <div id="tip"></div>
     </section>
@@ -426,6 +463,7 @@
             <div class="lead" id="iti-dates" style="margin:0"></div>
           </div>
         </div>
+        <div class="acc-controls"><button id="acc-expand">Expand all</button><span>·</span><button id="acc-collapse">Collapse all</button></div>
         <div id="iti-body"></div>
       </div>
     </section>
@@ -445,7 +483,7 @@
       <div class="mapctl">
         <button class="ctlbtn" id="r-back" title="Back to regions">‹</button>
         <div class="searchbox">
-          <span class="si">🔍</span>
+          <span class="si" data-icon="search" data-isz="15"></span>
           <input id="search-in2" placeholder="Find a state or province…" autocomplete="off"/>
           <div id="search-res2" class="sres"></div>
         </div>
@@ -483,6 +521,14 @@
           <h2 style="margin:0 0 4px">Look &amp; feel</h2>
           <p class="lead" style="margin:0 0 10px">Pick a vibe — your whole map restyles instantly.</p>
           <div class="themegrid" id="theme-grid"></div>
+        </div>
+        <div class="card">
+          <h2 style="margin:0 0 4px">Distance units</h2>
+          <p class="lead" style="margin:0 0 10px">How ground-covered is shown.</p>
+          <div class="seg" id="units-seg">
+            <button data-u="mi">Miles</button>
+            <button data-u="km">Kilometres</button>
+          </div>
         </div>
         <div class="stats" id="account-stats"></div>
         <div id="account-landmarks"></div>
@@ -542,7 +588,7 @@
     </div>
     <div class="field" style="margin-bottom:6px"><label>Add stops</label>
       <div class="searchbox" style="position:relative">
-        <span class="si">🔍</span>
+        <span class="si" data-icon="search" data-isz="15"></span>
         <input id="jm-search" placeholder="Search a country, city, park, UNESCO site or sea…" autocomplete="off" style="padding-left:33px"/>
         <div id="jm-res" class="sres"></div>
       </div>
@@ -560,13 +606,13 @@
   <div class="help-card">
     <h2>How it works</h2>
     <div class="hsub">Wanderlines</div>
-    <div class="help-row"><div class="hic">👆</div><div class="ht"><b>Tap a country</b><small>Its name pops up and the color cycles: Lived → Visited → Wish List → clear.</small></div></div>
-    <div class="help-row"><div class="hic">✋</div><div class="ht"><b>Press &amp; hold</b><small>Opens details — change the list, set the year, add notes.</small></div></div>
-    <div class="help-row"><div class="hic">🔍</div><div class="ht"><b>Search</b><small>Find a country (or a state/province inside a region) and jump to it.</small></div></div>
-    <div class="help-row"><div class="hic">📍</div><div class="ht"><b>Landmarks</b><small>Switch on National Parks or UNESCO pins — tap to mark Visited or Wish List.</small></div></div>
-    <div class="help-row"><div class="hic">🧭</div><div class="ht"><b>Journeys</b><small>Every trip you've taken, replayed as a route on the map.</small></div></div>
-    <div class="help-row"><div class="hic">📅</div><div class="ht"><b>Year</b><small>Bottom-left chip sets the year new taps are logged under.</small></div></div>
-    <div class="help-row"><div class="hic">☰</div><div class="ht"><b>Menu</b><small>Switch screens: Map, Journeys, Regions, Lists, Account.</small></div></div>
+    <div class="help-row"><div class="hic" data-icon="tap"></div><div class="ht"><b>Tap a country</b><small>Its name pops up and the color cycles: Lived → Visited → Wish List → clear.</small></div></div>
+    <div class="help-row"><div class="hic" data-icon="hold"></div><div class="ht"><b>Press &amp; hold</b><small>Opens details — change the list, set the year, add notes.</small></div></div>
+    <div class="help-row"><div class="hic" data-icon="search"></div><div class="ht"><b>Search</b><small>Find a country (or a state/province inside a region) and jump to it.</small></div></div>
+    <div class="help-row"><div class="hic" data-icon="pin"></div><div class="ht"><b>Landmarks</b><small>Switch on National Parks or UNESCO pins — tap to mark Visited or Wish List.</small></div></div>
+    <div class="help-row"><div class="hic" data-icon="compass"></div><div class="ht"><b>Journeys</b><small>Every trip you've taken, replayed as a route on the map.</small></div></div>
+    <div class="help-row"><div class="hic" data-icon="calendar"></div><div class="ht"><b>Year</b><small>Bottom-left chip sets the year new taps are logged under.</small></div></div>
+    <div class="help-row"><div class="hic" data-icon="menu"></div><div class="ht"><b>Menu</b><small>Switch screens: Map, Journeys, Regions, Lists, Account.</small></div></div>
     <button class="btn primary help-done" id="help-done">Got it</button>
     <div class="help-tip">…or tap anywhere to close</div>
   </div>
@@ -589,19 +635,22 @@ const state = {
   places: {},       // 'parks:Yosemite' -> {visited:true, year}
   tracking: 'manual',   // 'manual' | 'auto'(soon) — set under Account
   theme: 'retro',       // one of 6 token-driven vibes
+  units: 'mi',          // 'mi' (default) | 'km' — set under Account
   activeRoute: null,    // journey currently drawn on the world map
   journeys: [
     { id:'j1', name:'Southeast Asia', start:'2024-02-03', end:'2024-02-24', modes:['plane','train','boat'],
-      travelers:[{name:'You',age:'29',avatar:'🧑'},{name:'Sam',age:'31',avatar:'👩'}],
-      review:{rating:5,pace:'balanced',budget:'midrange',weather:'sunny',returnq:'yes',highlight:'Angkor Wat at sunrise'},
+      travelers:[{name:'You',age:'29',avatar:0},{name:'Sam',age:'31',avatar:1}],
+      review:{rating:5,returnq:'yes',highlight:'Angkor Wat at sunrise',eats:'Mango sticky rice off a Bangkok cart',stay:'Riverside guesthouse in Hoi An — yes'},
+      remember:['Book Angkor tickets the night before','Pack lighter — laundry is cheap everywhere','Halong Bay midweek to dodge the crowds'],
       stops:[ {name:'Bangkok',lon:100.5,lat:13.76,kind:'city',notes:'Street food crawl; Grand Palace.'},
               {name:'Angkor Wat',lon:103.87,lat:13.41,kind:'unesco',notes:'Up at 4am for sunrise — worth it.'},
               {name:'Vietnam',lon:108.28,lat:14.06,kind:'country',notes:'Halong Bay cruise.'} ],
       journal:[{date:'2024-02-05',text:'Got lost in Bangkok’s night markets and found the best mango sticky rice of my life. Sam haggled for a hat.'},
                {date:'2024-02-12',text:'Sunrise at Angkor Wat. No words — just the silhouettes and the reflecting pool. Cried a little.'}] },
     { id:'j2', name:'Andes Adventure', start:'2023-09-10', end:'2023-09-28', modes:['car','walking'],
-      travelers:[{name:'You',age:'29',avatar:'🧑'}],
-      review:{rating:4,pace:'packed',budget:'shoestring',weather:'mixed',returnq:'maybe',highlight:'Machu Picchu trek'},
+      travelers:[{name:'You',age:'29',avatar:0}],
+      review:{rating:4,returnq:'maybe',highlight:'Machu Picchu trek',eats:'Lomo saltado in Cusco',stay:''},
+      remember:['Acclimatise in Cusco 2+ days before the trek'],
       stops:[ {name:'Cusco',lon:-71.97,lat:-13.53,kind:'city',notes:''}, {name:'Machu Picchu',lon:-72.55,lat:-13.16,kind:'unesco',notes:'The classic Inca Trail.'}, {name:'Chile',lon:-71.54,lat:-35.68,kind:'country',notes:''} ],
       journal:[] },
   ],
@@ -679,7 +728,7 @@ function go(view){
   if(view==='itinerary'){ renderItinerary(); }
   if(view==='regions'){ renderRegions(); }
   if(view==='lists'){ renderLists(); renderByYear(); }
-  if(view==='account'){ renderAccount(); buildThemeGrid(); }
+  if(view==='account'){ renderAccount(); buildThemeGrid(); renderUnits(); }
 }
 
 // ---------------- world map ----------------
@@ -791,7 +840,36 @@ const BODIES=[['Pacific Ocean',-150,0],['Atlantic Ocean',-30,10],['Indian Ocean'
   ['Baltic Sea',19,58],['North Sea',3,56],['Caspian Sea',50,41],['Coral Sea',152,-16],['South China Sea',114,12],
   ['Great Lakes',-83,44],['Lake Titicaca',-69.3,-15.8],['Lake Baikal',108,53.5],['Norwegian Fjords',6.5,61.5],
   ['Adriatic Sea',15,43],['Tasman Sea',160,-40]];
-const STOP_KINDS={country:'🏳️',region:'📍',unesco:'🏛️',park:'🏞️',city:'🏙️',water:'🌊'};
+// ---------------- our own line-icon set (no emoji — keeps the vibe intact) ----------------
+const ICONS={
+  world:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18"/>',
+  compass:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2.2 4.8-4.8 2.2 2.2-4.8z"/>',
+  pin:'<path d="M12 21s-6-5.2-6-10a6 6 0 0 1 12 0c0 4.8-6 10-6 10z"/><circle cx="12" cy="11" r="2.1"/>',
+  list:'<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+  person:'<circle cx="12" cy="8" r="3.4"/><path d="M5.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/>',
+  flag:'<path d="M6 21V4"/><path d="M6 5h11l-2.2 3 2.2 3H6"/>',
+  unesco:'<path d="M4 9l8-5 8 5"/><path d="M5.5 9v8M9.5 9v8M14.5 9v8M18.5 9v8"/><path d="M3.5 20h17"/>',
+  park:'<path d="M12 3l4.5 7H14l3 5H7l3-5H7.5z"/><path d="M12 15v5"/>',
+  city:'<path d="M4 21V9l5-3v15M9 21V12l6-2.5V21M15 21V13l5 2v6"/><path d="M3 21h18"/>',
+  water:'<path d="M3 8c2-2 4-2 6 0s4 2 6 0 4-2 6 0M3 14c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/>',
+  car:'<path d="M5 11l2-4.2A2 2 0 0 1 8.8 5.6h6.4a2 2 0 0 1 1.8 1.2L19 11"/><rect x="3.5" y="11" width="17" height="5" rx="1.3"/><circle cx="7.5" cy="17.5" r="1.4"/><circle cx="16.5" cy="17.5" r="1.4"/>',
+  bus:'<rect x="4" y="4" width="16" height="13" rx="2.4"/><path d="M4 12h16M9 4v8"/><circle cx="8" cy="19" r="1.2"/><circle cx="16" cy="19" r="1.2"/>',
+  train:'<rect x="6" y="4" width="12" height="12" rx="3"/><path d="M6 11h12"/><circle cx="9" cy="13.5" r="0.9"/><circle cx="15" cy="13.5" r="0.9"/><path d="M8 16l-2 3.5M16 16l2 3.5"/>',
+  walking:'<circle cx="13" cy="4" r="1.8"/><path d="M13 7l-1 5 3 3 1.5 4M12 12l-3 1.5M13.5 9l3 1.5"/>',
+  biking:'<circle cx="6" cy="17" r="3.2"/><circle cx="18" cy="17" r="3.2"/><path d="M6 17l4-7h4M9.5 10h4M14 10l4 7"/><circle cx="14.5" cy="5.5" r="1.3"/>',
+  boat:'<path d="M12 3v10M12 5.5l5 7.5h-5z"/><path d="M4 16h16l-2.2 4.2H6.2z"/>',
+  horseback:'<path fill="currentColor" stroke="none" d="M7.7 21c-.2-2.6.4-4.7 1.9-6.3-1.7.1-3.2-.4-4.2-1.6-.7-.8-.5-1.7.2-2.3l1.3 1.1.6-1.5-1-1c.8-1.9 2.3-3.5 4.6-4.3l-.5-1.7c-.1-.5.2-1 .8-.8 2 .6 5.7 2.7 6.6 7.3.5 2.6.2 6.6-2 11.1z"/><circle cx="12.2" cy="9" r=".7" fill="var(--paper)" stroke="none"/>',
+  cruise:'<path d="M4 17h16l-1.8 4H5.8z"/><rect x="8" y="9.5" width="9" height="4.5"/><path d="M8 11.5h9M11.5 6h4v3.5h-4z"/>',
+  plane:'<path d="M12 3c.9 0 1.4 1.1 1.4 3v3.6l6.1 3.6v1.9l-6.1-1.7v3.4l1.9 1.4v1.5L12 22.2 8.8 21v-1.5l1.9-1.4v-3.4L4.6 16.4v-1.9l6.1-3.6V6c0-1.9.5-3 1.3-3z"/>',
+  calendar:'<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 9.5h16M8 3v4M16 3v4"/>',
+  search:'<circle cx="11" cy="11" r="6"/><path d="M15.6 15.6L20 20"/>',
+  menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+  tap:'<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/>',
+  hold:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 2"/>',
+};
+const ICON=(n,s=18)=>`<svg class="ic-svg" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex:none">${ICONS[n]||''}</svg>`;
+const STOP_KINDS={country:ICON('flag',16),region:ICON('pin',16),unesco:ICON('unesco',16),park:ICON('park',16),city:ICON('city',16),water:ICON('water',16)};
+const AV_COLORS=['#c43e1a','#0e7c6f','#7a5ea8','#d99421','#3a7d44','#2f6f9f','#a3672f','#b5532a'];
 // build a flat searchable index (countries added once wfeats loads)
 function stopIndex(){
   const idx=[];
@@ -819,7 +897,7 @@ function cyclePlace(d,e){
   else { const nx=order[order.indexOf(cur.listId)+1]; if(nx) cur.listId=nx; else delete state.places[k]; }
   renderMarks();
   const p=state.places[k], st=p?(p.listId==='visited'?'Visited · '+p.year:'Wish List'):'';
-  flashTip(tip,'view-world',e,(d.layer==='parks'?'🏞️ ':'🏛️ ')+d.name+(st?' · '+st:''),null);
+  flashTip(tip,'view-world',e,(d.layer==='parks'?ICON('park',15)+' ':ICON('unesco',15)+' ')+d.name+(st?' · '+st:''),null);
 }
 // Visited first (most common), then Lived, Wish List, any custom lists, then clear
 function cycleOrder(){ return ['visited', ...state.lists.filter(l=>l.id!=='visited').map(l=>l.id)]; }
@@ -952,7 +1030,7 @@ function renderSheet(){
 function updatePaintFab(){
   document.getElementById('paint-label').textContent=state.year;
   const dot=document.getElementById('paint-dot');
-  dot.style.background='none'; dot.textContent='📅'; dot.style.boxShadow='none'; dot.style.fontSize='15px';
+  dot.style.background='none'; dot.style.boxShadow='none'; dot.innerHTML=ICON('calendar',15);
 }
 
 // ---------------- regions ----------------
@@ -1086,8 +1164,8 @@ function renderAccount(){
   if(parks+un>0){
     lm.innerHTML=`<div class="card" style="margin-top:12px"><h2 style="margin:0 0 10px">Landmarks visited</h2>
       <div class="stats">
-        <div class="statbox"><div class="n">🏞️ ${parks}</div><div class="l">National Parks</div></div>
-        <div class="statbox"><div class="n">🏛️ ${un}</div><div class="l">UNESCO Sites</div></div>
+        <div class="statbox"><div class="n">${ICON('park',22)} ${parks}</div><div class="l">National Parks</div></div>
+        <div class="statbox"><div class="n">${ICON('unesco',22)} ${un}</div><div class="l">UNESCO Sites</div></div>
       </div></div>`;
   } else lm.innerHTML='';
 }
@@ -1099,9 +1177,9 @@ function renderJourneys(){
   const box=document.getElementById('journeys-list');
   if(!state.journeys.length){ box.innerHTML='<div class="card"><div class="lead" style="margin:0">No journeys yet — tap “New journey” to log a trip you’ve taken.</div></div>'; return; }
   box.innerHTML=state.journeys.map(j=>{
-    const chips=j.stops.map((s,i)=>`<span class="jchip"><span class="seq">${i+1}</span>${STOP_KINDS[s.kind]||'📍'} ${s.name}</span>`).join('')||'<span class="lead" style="font-size:12px">No stops yet</span>';
+    const chips=j.stops.map((s,i)=>`<span class="jchip"><span class="seq">${i+1}</span>${STOP_KINDS[s.kind]||ICON('pin',16)} ${s.name}</span>`).join('')||'<span class="lead" style="font-size:12px">No stops yet</span>';
     const rating=(j.review&&j.review.rating)?`<span class="jrate">${'★'.repeat(j.review.rating)}<span class="off">${'★'.repeat(5-j.review.rating)}</span></span>`:'';
-    const veh=(j.modes||[]).map(m=>{const v=VEHICLES.find(x=>x[0]===m);return v?v[1]:'';}).join(' ');
+    const veh=(j.modes||[]).map(m=>ICONS[m]?ICON(m,15):'').join(' ');
     return `<div class="journey" data-id="${j.id}">
       <div class="jh"><div class="jn">${j.name}</div>${rating}</div>
       <div class="jd">${fmtRange(j.start,j.end)} · ${j.stops.length} stop${j.stops.length===1?'':'s'}${veh?' · '+veh:''}</div>
@@ -1116,107 +1194,114 @@ function renderJourneys(){
   });
 }
 document.getElementById('route-clear').onclick=clearRoute;
+// click the journey name in the route banner → back to that journey's page; ✕ → full map
+document.getElementById('route-name').onclick=()=>{ if(state.activeRoute) openItinerary(state.activeRoute); };
 
 // ---- journey detail page (personal log: stats, review, companions, vehicles, memories, journal) ----
 let currentItinerary=null;
-const VEHICLES=[['car','🚗','Car'],['bus','🚌','Bus'],['train','🚆','Train'],['walking','🚶','Walking'],
-  ['biking','🚲','Biking'],['boat','⛵','Boat'],['horseback','🐎','Horseback'],['cruise','🛳️','Cruise'],['plane','✈️','Plane']];
-const AVATARS=['🧑','👩','👨','🧒','🧓','👵','🧔','👱‍♀️','🧑‍🦱','👩‍🦰','🧑‍🦳','🐶','🐱','🦊','🐼'];
-const REVIEW_Q=[
-  {k:'pace',label:'Pace',opts:[['relaxed','🍃 Relaxed'],['balanced','⚖️ Balanced'],['packed','⚡ Packed']]},
-  {k:'budget',label:'Budget',opts:[['shoestring','🎒 Shoestring'],['midrange','💳 Midrange'],['splurge','💎 Splurge']]},
-  {k:'weather',label:'Weather',opts:[['sunny','☀️ Sunny'],['mixed','⛅ Mixed'],['rainy','🌧️ Rainy'],['cold','❄️ Cold']]},
-  {k:'returnq',label:'Go back?',opts:[['yes','💯 Yes'],['maybe','🤔 Maybe'],['no','✅ Been there']]},
-];
+const VEHICLES=[['car',ICON('car',22),'Car'],['bus',ICON('bus',22),'Bus'],['train',ICON('train',22),'Train'],['walking',ICON('walking',22),'Walking'],
+  ['biking',ICON('biking',22),'Biking'],['boat',ICON('boat',22),'Boat'],['horseback',ICON('horseback',22),'Horseback'],['cruise',ICON('cruise',22),'Cruise'],['plane',ICON('plane',22),'Plane']];
 function trailKm(j){ let km=0; for(let i=1;i<j.stops.length;i++){ km+=d3.geoDistance([j.stops[i-1].lon,j.stops[i-1].lat],[j.stops[i].lon,j.stops[i].lat])*6371; } return Math.round(km); }
+function distFmt(km){ const v = state.units==='mi' ? Math.round(km*0.621371) : km; return { val:v.toLocaleString(), unit: state.units==='mi'?'mi':'km' }; }
 function trailDays(j){ if(!j.start||!j.end) return 0; const a=new Date(j.start+'T00:00:00'), b=new Date(j.end+'T00:00:00');
   return Math.max(1, Math.round((b-a)/86400000)+1); }
 function stars(n,interactive){ let h=''; for(let s=1;s<=5;s++) h+=`<span class="star ${s<=n?'on':''}" ${interactive?`data-star="${s}"`:''}>★</span>`; return h; }
+function avInitial(name){ const t=(name||'').trim(); return t ? t.charAt(0).toUpperCase() : '·'; }
 function openItinerary(j){ currentItinerary=j; nav.classList.remove('open'); go('itinerary'); }
 function renderItinerary(){
   const j=currentItinerary; if(!j) return;
   j.travelers=j.travelers||[]; j.modes=j.modes||[]; j.review=j.review||{}; j.journal=j.journal||[];
   document.getElementById('iti-name').textContent=j.name;
   document.getElementById('iti-dates').textContent=fmtRange(j.start,j.end)+' · '+j.stops.length+' stop'+(j.stops.length===1?'':'s');
-  const km=trailKm(j), days=trailDays(j);
-  const stats=[[km.toLocaleString(),'km of ground covered'],[j.stops.length,'stops'],[days?days:'—','days on the road'],[j.travelers.length||'—','travellers']];
+  const gc=distFmt(trailKm(j)), days=trailDays(j);
+  const stats=[[gc.val,gc.unit+' of ground covered'],[j.stops.length,'stops'],[days?days:'—','days on the road'],[j.travelers.length||'—','travellers']];
   const travRows=j.travelers.map((t,i)=>`<div class="trav" data-i="${i}">
-      <button class="avatar" data-i="${i}" title="Change avatar">${t.avatar||'🙂'}</button>
+      <button class="avatar" data-i="${i}" title="Change colour" style="background:${AV_COLORS[(t.avatar||0)%AV_COLORS.length]}">${avInitial(t.name)}</button>
       <div class="ti"><input data-f="name" placeholder="Name" value="${(t.name||'').replace(/"/g,'&quot;')}"/>
         <input data-f="age" placeholder="Age" inputmode="numeric" value="${t.age||''}"/></div>
       <span class="trm" title="Remove">✕</span></div>`).join('');
   const stopRows=j.stops.map((s,i)=>`<div class="iti-stop" data-i="${i}">
-      <div class="sh"><span class="seq">${i+1}</span>${STOP_KINDS[s.kind]||'📍'} ${s.name}</div>
+      <div class="sh"><span class="seq">${i+1}</span>${STOP_KINDS[s.kind]||ICON('pin',16)} ${s.name}</div>
       <textarea data-i="${i}" placeholder="Memories, restaurants, where you stayed, what to remember…">${(s.notes||'').replace(/</g,'&lt;')}</textarea></div>`).join('')
       || '<div class="lead" style="margin:0;font-size:13px">No stops yet — tap “Edit journey” to add some.</div>';
-  const reviewRows=REVIEW_Q.map(q=>`<div class="rev-q"><div class="mini-lbl">${q.label}</div>
-      <div class="seg" data-q="${q.k}">${q.opts.map(([v,lbl])=>`<button data-v="${v}" class="${j.review[q.k]===v?'on':''}">${lbl}</button>`).join('')}</div></div>`).join('');
+  const esc=v=>(v||'').replace(/"/g,'&quot;');
   const journalRows=j.journal.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map((e,i)=>`<div class="je" data-i="${i}">
       <div class="je-head"><span class="je-date">${e.date?fmtDate(e.date):'Undated'}</span>
         <span class="je-act"><span class="je-share" data-i="${i}" title="Share">⤴</span><span class="je-del" data-i="${i}" title="Delete">✕</span></span></div>
+      ${e.photo?`<div class="je-photo"><img src="${e.photo}" alt=""/></div>`:''}
       <div class="je-body">${(e.text||'').replace(/</g,'&lt;')||'…'}</div></div>`).join('')
       || '<div class="lead" style="margin:0;font-size:13px">No entries yet — write your first below.</div>';
-  document.getElementById('iti-body').innerHTML=`
-    <div class="iti-card"><h3>This journey</h3>
-      <div class="stats" style="grid-template-columns:1fr 1fr">${stats.map(s=>`<div class="statbox"><div class="n">${s[0]}</div><div class="l">${s[1]}</div></div>`).join('')}</div>
-    </div>
-    <div class="iti-card"><h3>How it went</h3>
-      <p class="mini-lbl">A quick recap you can compare across every journey</p>
-      <div class="rev-q"><div class="mini-lbl">Overall</div><div class="stars" id="iti-stars">${stars(j.review.rating||0,true)}</div></div>
-      ${reviewRows}
-      <div class="field" style="margin:10px 0 0"><label>Highlight</label><input id="iti-highlight" placeholder="The one thing you'll never forget…" value="${(j.review.highlight||'').replace(/"/g,'&quot;')}"/></div>
-    </div>
-    <div class="iti-card"><h3>Who came along</h3>
-      <p class="mini-lbl">Avatar · Name · Age — tap an avatar to change it</p>
-      ${travRows}
-      <button class="btn addbtn" id="iti-addtrav">+ Add traveller</button>
-    </div>
-    <div class="iti-card"><h3>How you got around</h3>
-      <p class="mini-lbl">Tap every way you travelled</p>
-      <div class="vehicles" id="iti-veh">${VEHICLES.map(([k,ic,lbl])=>`<button data-m="${k}" class="veh ${j.modes.includes(k)?'on':''}" title="${lbl}"><span class="vic">${ic}</span><span class="vlb">${lbl}</span></button>`).join('')}</div>
-    </div>
-    <div class="iti-card"><h3>Route &amp; memories</h3>${stopRows}</div>
-    <div class="iti-card"><h3>Journal</h3>
-      <p class="mini-lbl">Dated entries in your vibe — save or share each one</p>
-      <div id="iti-journal">${journalRows}</div>
+  const remRows=(j.remember||[]).length ? j.remember.map((r,i)=>`<div class="rem-item"><span>${(r||'').replace(/</g,'&lt;')}</span><span class="rem-del" data-i="${i}" title="Remove">✕</span></div>`).join('')
+      : '<div class="lead" style="margin:0 0 8px;font-size:13px">Nothing yet — jot what future-you will thank you for.</div>';
+  // preserve which sections are expanded across re-renders; on first open, only the overview
+  const openNow=[...document.querySelectorAll('#iti-body .acc[open]')].map(d=>d.querySelector('summary').dataset.t);
+  const fresh=openNow.length===0;
+  const isOpen=(key,def)=>fresh?def:openNow.includes(key);
+  const acc=(key,title,body,def)=>`<details class="iti-card acc"${isOpen(key,def)?' open':''}><summary data-t="${key}">${title}</summary><div class="acc-body">${body}</div></details>`;
+  // intuitive order: overview → the route → who & how → your journal → reflection → notes for next time
+  document.getElementById('iti-body').innerHTML=
+    acc('overview','This journey',`<div class="stats" style="grid-template-columns:1fr 1fr">${stats.map(s=>`<div class="statbox"><div class="n">${s[0]}</div><div class="l">${s[1]}</div></div>`).join('')}</div>`,true)
+  + acc('route','Route & memories',stopRows,false)
+  + acc('who','Who came along',`${travRows}<button class="btn addbtn" id="iti-addtrav">+ Add traveller</button>`,false)
+  + acc('around','How you got around',`<div class="vehicles" id="iti-veh">${VEHICLES.map(([k,ic,lbl])=>`<button data-m="${k}" class="veh ${j.modes.includes(k)?'on':''}" title="${lbl}"><span class="vic">${ic}</span><span class="vlb">${lbl}</span></button>`).join('')}</div>`,false)
+  + acc('journal','Journal',`<div id="iti-journal">${journalRows}</div>
       <div class="je-new"><input type="date" id="je-date"/><textarea id="je-text" placeholder="What happened today…"></textarea>
-        <button class="btn primary addbtn" id="je-add">+ Add entry</button></div>
-    </div>
-    <div class="iti-card"><h3>This journey</h3>
-      <div class="iti-actions">
+        <label class="je-photo-pick" id="je-photo-label"><input type="file" accept="image/*" id="je-photo" hidden/><span id="je-photo-txt">+ Add a photo</span></label>
+        <button class="btn primary addbtn" id="je-add">+ Add entry</button></div>`,false)
+  + acc('went','How it went',`
+      <div class="rev-q"><div class="mini-lbl">Overall</div><div class="stars" id="iti-stars">${stars(j.review.rating||0,true)}</div></div>
+      <div class="field"><label>Highlight</label><input id="rv-highlight" placeholder="The one moment you'll never forget…" value="${esc(j.review.highlight)}"/></div>
+      <div class="field"><label>Best eats</label><input id="rv-eats" placeholder="A meal or spot worth remembering…" value="${esc(j.review.eats)}"/></div>
+      <div class="field"><label>Where we stayed</label><input id="rv-stay" placeholder="Place / area — would you again?" value="${esc(j.review.stay)}"/></div>
+      <div class="rev-q"><div class="mini-lbl">Would you go back?</div>
+        <div class="seg" id="rv-return">${[['yes','Yes'],['maybe','Maybe'],['no','Been there']].map(([v,l])=>`<button data-v="${v}" class="${j.review.returnq===v?'on':''}">${l}</button>`).join('')}</div></div>`,false)
+  + acc('remember','Remember for next time',`<div class="remember" id="rem-list">${remRows}</div>
+      <div class="rem-add"><input id="rem-input" placeholder="e.g. Book Angkor tickets the night before"/><button class="btn" id="rem-add-btn">Add</button></div>`,false)
+  + `<div class="iti-card"><div class="iti-actions">
         <button class="btn primary" id="iti-route">Show route on map ›</button>
-        <button class="btn" id="iti-edit">Edit journey</button>
-      </div>
-    </div>`;
+        <button class="btn" id="iti-edit">Edit journey</button></div></div>`;
   wireItinerary(j);
 }
 function refreshStats(j){
-  const vals=[trailKm(j).toLocaleString(),j.stops.length,trailDays(j)||'—',j.travelers.length||'—'];
+  const vals=[distFmt(trailKm(j)).val,j.stops.length,trailDays(j)||'—',j.travelers.length||'—'];
   document.querySelectorAll('#iti-body .statbox .n').forEach((el,i)=>{ if(vals[i]!==undefined) el.textContent=vals[i]; });
 }
 function wireItinerary(j){
-  // review: stars + chips + highlight
+  // review: clickable stars + text fields + go-back chips
   document.querySelectorAll('#iti-stars .star').forEach(st=>st.onclick=()=>{ j.review.rating=+st.dataset.star;
-    document.getElementById('iti-stars').innerHTML=stars(j.review.rating,true); wireItinerary(j); });
-  document.querySelectorAll('#iti-body .rev-q .seg[data-q]').forEach(seg=>seg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
-    j.review[seg.dataset.q]=b.dataset.v; seg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); }));
-  const hl=document.getElementById('iti-highlight'); if(hl) hl.oninput=e=>j.review.highlight=e.target.value;
+    document.getElementById('iti-stars').innerHTML=stars(j.review.rating,true);
+    document.querySelectorAll('#iti-stars .star').forEach(s2=>s2.onclick=st.onclick); wireItinerary(j); });
+  ['highlight','eats','stay'].forEach(f=>{ const el=document.getElementById('rv-'+f); if(el) el.oninput=e=>j.review[f]=e.target.value; });
+  const rseg=document.getElementById('rv-return');
+  if(rseg) rseg.querySelectorAll('button').forEach(b=>b.onclick=()=>{ j.review.returnq=b.dataset.v;
+    rseg.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); });
+  // remember-for-next-time list
+  const addRem=()=>{ const inp=document.getElementById('rem-input'); const v=(inp.value||'').trim(); if(!v) return;
+    j.remember=j.remember||[]; j.remember.push(v); renderItinerary(); };
+  const rb=document.getElementById('rem-add-btn'); if(rb) rb.onclick=addRem;
+  const ri=document.getElementById('rem-input'); if(ri) ri.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); addRem(); } };
+  document.querySelectorAll('#rem-list .rem-del').forEach(el=>el.onclick=()=>{ j.remember.splice(+el.dataset.i,1); renderItinerary(); });
   // travellers
   document.querySelectorAll('#iti-body .trav').forEach(row=>{
     const t=j.travelers[+row.dataset.i];
-    row.querySelectorAll('input').forEach(inp=>inp.oninput=()=>{ t[inp.dataset.f]=inp.value; });
-    row.querySelector('.avatar').onclick=()=>{ const cur=AVATARS.indexOf(t.avatar); t.avatar=AVATARS[(cur+1)%AVATARS.length]; renderItinerary(); };
+    row.querySelectorAll('input').forEach(inp=>inp.oninput=()=>{ t[inp.dataset.f]=inp.value;
+      if(inp.dataset.f==='name') row.querySelector('.avatar').textContent=avInitial(inp.value); });
+    row.querySelector('.avatar').onclick=()=>{ t.avatar=((t.avatar||0)+1)%AV_COLORS.length; renderItinerary(); };
     row.querySelector('.trm').onclick=()=>{ j.travelers.splice(+row.dataset.i,1); renderItinerary(); };
   });
-  document.getElementById('iti-addtrav').onclick=()=>{ j.travelers.push({name:'',age:'',avatar:AVATARS[j.travelers.length%AVATARS.length]}); renderItinerary(); };
+  document.getElementById('iti-addtrav').onclick=()=>{ j.travelers.push({name:'',age:'',avatar:j.travelers.length%AV_COLORS.length}); renderItinerary(); };
   // vehicles (multi-select)
   document.querySelectorAll('#iti-veh .veh').forEach(b=>b.onclick=()=>{ const m=b.dataset.m;
     const i=j.modes.indexOf(m); if(i>=0) j.modes.splice(i,1); else j.modes.push(m); b.classList.toggle('on'); });
   // stop notes
   document.querySelectorAll('#iti-body .iti-stop textarea').forEach(ta=>ta.oninput=()=>{ j.stops[+ta.dataset.i].notes=ta.value; });
-  // journal
+  // journal — one optional photo per entry (library / camera / files via the OS picker)
+  let draftPhoto=null;
+  const pin=document.getElementById('je-photo');
+  if(pin) pin.onchange=e=>{ const f=e.target.files[0]; if(!f) return;
+    const r=new FileReader(); r.onload=()=>{ draftPhoto=r.result; document.getElementById('je-photo-txt').textContent='✓ Photo attached — change'; }; r.readAsDataURL(f); };
   document.getElementById('je-add').onclick=()=>{ const d=document.getElementById('je-date').value, t=document.getElementById('je-text').value.trim();
-    if(!t){ return; } j.journal.push({date:d,text:t}); renderItinerary(); };
+    if(!t && !draftPhoto){ return; } j.journal.push({date:d,text:t,photo:draftPhoto||null}); renderItinerary(); };
   document.querySelectorAll('#iti-journal .je-del').forEach(el=>el.onclick=()=>{ const e=sortedEntry(j,+el.dataset.i); j.journal.splice(j.journal.indexOf(e),1); renderItinerary(); });
   document.querySelectorAll('#iti-journal .je-share').forEach(el=>el.onclick=()=>shareJournalEntry(j,sortedEntry(j,+el.dataset.i)));
   document.getElementById('iti-route').onclick=()=>showRoute(j);
@@ -1224,25 +1309,36 @@ function wireItinerary(j){
 }
 function sortedEntry(j,i){ return j.journal.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''))[i]; }
 document.getElementById('iti-back').onclick=()=>go('journeys');
+document.getElementById('acc-expand').onclick=()=>document.querySelectorAll('#iti-body .acc').forEach(d=>d.open=true);
+document.getElementById('acc-collapse').onclick=()=>document.querySelectorAll('#iti-body .acc').forEach(d=>d.open=false);
 // render a journal entry to a pretty, shareable image — handwriting font + current vibe colours
 async function shareJournalEntry(j,e){
   if(!e) return;
   const cs=getComputedStyle(document.documentElement), g=k=>cs.getPropertyValue(k).trim();
   const paper=g('--ocean-hi')||'#fff', ink=g('--ink')||'#222', accent=g('--accent')||'#b5532a', rule=g('--rule')||'#ccc';
   const hand=(g('--font-hand')||'cursive').replace(/\s+/g,' '), disp=(g('--font-display')||'sans-serif').replace(/\s+/g,' ');
+  const pfilter=g('--photo-filter')||'none';
   try{ await document.fonts.load(`40px ${hand}`); await document.fonts.load(`600 30px ${disp}`); }catch(_){}
-  const W=1080, pad=84, c=document.createElement('canvas'), ctx=c.getContext('2d');
+  const W=1080, pad=84, innerW=W-pad*2;
+  let img=null, photoH=0;
+  if(e.photo){ img=await new Promise(res=>{ const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=e.photo; });
+    if(img) photoH=Math.round(innerW*img.height/img.width); }
+  const c=document.createElement('canvas'), ctx=c.getContext('2d');
   c.width=W; ctx.font=`40px ${hand}`;
-  const maxW=W-pad*2, lines=[]; (e.text||'').split('\n').forEach(para=>{ let line='';
+  const maxW=innerW, lines=[]; (e.text||'').split('\n').forEach(para=>{ let line='';
     para.split(/\s+/).forEach(w=>{ const t=line?line+' '+w:w; if(ctx.measureText(t).width>maxW&&line){ lines.push(line); line=w; } else line=t; });
     lines.push(line); });
-  const lh=56, top=222, H=top+lines.length*lh+120; c.height=H;
+  const headH=178, lh=56, photoBlock=img?photoH+34:0, H=headH+photoBlock+lines.length*lh+96; c.height=H;
   ctx.fillStyle=paper; ctx.fillRect(0,0,W,H);
   ctx.fillStyle=accent; ctx.fillRect(0,0,W,14);
   ctx.fillStyle=accent; ctx.font=`600 32px ${disp}`; ctx.fillText(j.name, pad, 86);
   ctx.fillStyle=ink; ctx.font=`30px ${hand}`; ctx.fillText(e.date?fmtDate(e.date):'', pad, 138);
-  ctx.strokeStyle=rule; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(pad,168); ctx.lineTo(W-pad,168); ctx.stroke();
-  ctx.fillStyle=ink; ctx.font=`40px ${hand}`; lines.forEach((ln,i)=>ctx.fillText(ln,pad,top+i*lh));
+  ctx.strokeStyle=rule; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(pad,160); ctx.lineTo(W-pad,160); ctx.stroke();
+  let y=headH;
+  if(img){ ctx.save(); try{ ctx.filter=pfilter; }catch(_){}
+    ctx.drawImage(img,pad,y,innerW,photoH); ctx.restore();
+    ctx.strokeStyle=rule; ctx.lineWidth=3; ctx.strokeRect(pad,y,innerW,photoH); y+=photoH+34; }
+  ctx.fillStyle=ink; ctx.font=`40px ${hand}`; lines.forEach((ln,i)=>ctx.fillText(ln,pad,y+30+i*lh));
   ctx.fillStyle=accent; ctx.font=`600 24px ${disp}`; ctx.fillText('✦ WANDERLINES', pad, H-46);
   const blob=await new Promise(r=>c.toBlob(r,'image/png')), file=new File([blob],'journal.png',{type:'image/png'});
   if(navigator.canShare&&navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file],title:j.name,text:'From my Wanderlines journal ✦'}); return; }catch(_){} }
@@ -1266,7 +1362,7 @@ function openJourneyModal(j){
 function renderDraftStops(){
   const box=document.getElementById('jm-stops');
   box.innerHTML = draftStops.length ? draftStops.map((s,i)=>
-    `<span class="jchip"><span class="seq">${i+1}</span>${STOP_KINDS[s.kind]||'📍'} ${s.name}<span class="rm" data-i="${i}">✕</span></span>`).join('')
+    `<span class="jchip"><span class="seq">${i+1}</span>${STOP_KINDS[s.kind]||ICON('pin',16)} ${s.name}<span class="rm" data-i="${i}">✕</span></span>`).join('')
     : '<div class="lead" style="margin:0;font-size:12px">No stops yet — search a country, city, park, UNESCO site or sea to add it.</div>';
   box.querySelectorAll('.rm').forEach(el=>el.onclick=()=>{ draftStops.splice(+el.dataset.i,1); renderDraftStops(); });
 }
@@ -1337,6 +1433,17 @@ function applyTheme(id,save){
   updatePaintFab();
   buildThemeGrid();
 }
+// ---- distance units (miles default) ----
+function renderUnits(){
+  document.querySelectorAll('#units-seg button').forEach(b=>b.classList.toggle('on', b.dataset.u===state.units));
+}
+function applyUnits(u,save){
+  state.units = u==='km' ? 'km' : 'mi';
+  if(save){ try{localStorage.setItem('wl_units',state.units);}catch(e){} }
+  renderUnits();
+  if(currentItinerary && !document.getElementById('view-itinerary').classList.contains('hidden')) renderItinerary();
+}
+document.querySelectorAll('#units-seg button').forEach(b=>b.onclick=()=>applyUnits(b.dataset.u,true));
 
 // ---------------- share (OS share sheet) ----------------
 function currentMapSvg(){ return document.getElementById('view-world').classList.contains('hidden')
@@ -1411,7 +1518,22 @@ $('auth-toggle').onclick=()=>setAuthMode(authMode==='signin'?'signup':'signin');
 
 // apply saved vibe before first paint so the map uses themed colours from the start
 let savedTheme='retro'; try{ savedTheme=localStorage.getItem('wl_theme')||'retro'; }catch(e){}
+// optional per-vibe custom title fonts: if prototype/fonts/<vibe>-title.ttf exists it's used,
+// otherwise the curated web font stays (no broken @font-face when the file is absent)
+const VIBE_DISPLAY={retro:'"Bungee","Jost",sans-serif',sleek:'"Space Grotesk","Inter",sans-serif',
+  disco:'"Monoton","Righteous",sans-serif',earthy:'"Fraunces","Georgia",serif',
+  cute:'"Baloo 2","Quicksand",sans-serif',classic:'"Caveat",cursive'};
+const customFontStyle=document.createElement('style'); document.head.appendChild(customFontStyle);
+Object.keys(VIBE_DISPLAY).forEach(vibe=>{
+  try{ const ff=new FontFace('WL_'+vibe, `url(./fonts/${vibe}-title.ttf)`);
+    ff.load().then(f=>{ document.fonts.add(f);
+      customFontStyle.sheet.insertRule(`[data-theme="${vibe}"]{--font-display:"WL_${vibe}",${VIBE_DISPLAY[vibe]}}`,0); }).catch(()=>{});
+  }catch(_){}
+});
+// paint our own line-icons into every static [data-icon] slot (no emoji)
+document.querySelectorAll('[data-icon]').forEach(el=>{ el.innerHTML=ICON(el.dataset.icon, +(el.dataset.isz)||18); });
 applyTheme(savedTheme,false);
+let savedUnits='mi'; try{ savedUnits=localStorage.getItem('wl_units')||'mi'; }catch(e){} applyUnits(savedUnits,false);
 updatePaintFab();
 const startView=(location.hash||'').replace('#','');
 if(['regions','lists','account'].includes(startView)) go(startView); else ensureWorld();

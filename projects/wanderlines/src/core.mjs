@@ -35,80 +35,76 @@ export function daysBetween(start, end) {
   return Math.max(1, Math.round((b - a) / 86400000) + 1);
 }
 
+export const kmToMi = (km) => Math.round(km * 0.621371);
+
+/** Format a km distance in the user's units (miles is the default). */
+export function formatDistance(km, units = "mi") {
+  const v = units === "km" ? km : kmToMi(km);
+  return { value: v.toLocaleString(), unit: units === "km" ? "km" : "mi" };
+}
+
 /** The headline stats for a journey card / detail page. */
-export function journeyStats(j) {
+export function journeyStats(j, units = "mi") {
+  const km = groundCoveredKm(j.stops || []);
   return {
-    km: groundCoveredKm(j.stops || []),
+    km,
+    distance: formatDistance(km, units),
     stops: (j.stops || []).length,
     days: daysBetween(j.start, j.end),
     travellers: (j.travelers || []).length,
   };
 }
 
-/** Icon for each kind of stop a journey can include (any granularity). */
-export const STOP_KINDS = {
-  country: "🏳️",
-  region: "📍",
-  unesco: "🏛️",
-  park: "🏞️",
-  city: "🏙️",
-  water: "🌊",
-};
-
-/** The nine ways to get around. */
-export const VEHICLES = {
-  car: "🚗",
-  bus: "🚌",
-  train: "🚆",
-  walking: "🚶",
-  biking: "🚲",
-  boat: "⛵",
-  horseback: "🐎",
-  cruise: "🛳️",
-  plane: "✈️",
-};
+export const STOP_KINDS = ["country", "region", "unesco", "park", "city", "water"];
 
 export const REQUIRED_TOKENS = [
-  "--ocean", "--land", "--paper", "--ink", "--accent", "--accent2",
+  "--ocean", "--paper", "--ink", "--accent", "--accent2",
   "--c-lived", "--c-visited", "--font", "--font-display",
 ];
 
-/** Six token-driven vibes. Swapping the active set reskins the whole app. */
+/** Six token-driven vibes. Each carries its own palette, body font, and a
+ *  distinct display font for titles (the bug-fixed, vibe-specific set). */
 export const THEMES = {
   retro: {
-    "--ocean": "#edd2a0", "--land": "#39281f", "--paper": "#f8eccf", "--ink": "#2a1d14",
-    "--muted": "#9a7e57", "--rule": "#d6a347", "--accent": "#df4d12", "--accent2": "#0c8a6f",
-    "--c-lived": "#df4d12", "--c-visited": "#0c8a6f",
+    "--ocean": "#edd2a0", "--ocean-hi": "#f7ebcb", "--land": "#39281f",
+    "--paper": "#f8eccf", "--ink": "#2a1d14", "--muted": "#9a7e57", "--rule": "#d6a347",
+    "--field": "#fff7e6", "--accent": "#df4d12", "--accent2": "#0c8a6f", "--gold": "#eaa314",
+    "--c-lived": "#df4d12", "--c-visited": "#0c8a6f", "--on-accent": "#fff",
     "--font": '"Jost",system-ui,sans-serif', "--font-display": '"Bungee","Jost",sans-serif',
   },
   sleek: {
-    "--ocean": "#0e0f12", "--land": "#2c2f36", "--paper": "#16181c", "--ink": "#eef1f5",
-    "--muted": "#99a0ac", "--rule": "#33373f", "--accent": "#c4ccd6", "--accent2": "#878f9b",
-    "--c-lived": "#d2d8e0", "--c-visited": "#7f8893",
-    "--font": '"Inter",system-ui,sans-serif', "--font-display": '"Inter",sans-serif',
+    "--ocean": "#0e0f12", "--ocean-hi": "#191b1f", "--land": "#2c2f36",
+    "--paper": "#16181c", "--ink": "#eef1f5", "--muted": "#99a0ac", "--rule": "#33373f",
+    "--field": "#1f2228", "--accent": "#c4ccd6", "--accent2": "#878f9b", "--gold": "#d6dce4",
+    "--c-lived": "#d2d8e0", "--c-visited": "#7f8893", "--on-accent": "#15171b",
+    "--font": '"Inter",system-ui,sans-serif', "--font-display": '"Space Grotesk","Inter",sans-serif',
   },
   disco: {
-    "--ocean": "#16022c", "--land": "#2b0a47", "--paper": "#1d0636", "--ink": "#fdeeff",
-    "--muted": "#c79be0", "--rule": "#7a2bd0", "--accent": "#ff2bd6", "--accent2": "#1fe3cb",
-    "--c-lived": "#ff2bd6", "--c-visited": "#1fe3cb",
-    "--font": '"Righteous",system-ui,sans-serif', "--font-display": '"Righteous",sans-serif',
+    "--ocean": "#16022c", "--ocean-hi": "#2a0750", "--land": "#2b0a47",
+    "--paper": "#1d0636", "--ink": "#fdeeff", "--muted": "#c79be0", "--rule": "#7a2bd0",
+    "--field": "#270a40", "--accent": "#ff2bd6", "--accent2": "#1fe3cb", "--gold": "#f5e63d",
+    "--c-lived": "#ff2bd6", "--c-visited": "#1fe3cb", "--on-accent": "#fff",
+    "--font": '"Righteous",system-ui,sans-serif', "--font-display": '"Monoton","Righteous",sans-serif',
   },
   earthy: {
-    "--ocean": "#dce4d1", "--land": "#3a4a32", "--paper": "#eef0e3", "--ink": "#26301f",
-    "--muted": "#7c8a6c", "--rule": "#a8b58f", "--accent": "#5b7a3a", "--accent2": "#a3672f",
-    "--c-lived": "#a3672f", "--c-visited": "#5b7a3a",
-    "--font": "Georgia,serif", "--font-display": "Georgia,serif",
+    "--ocean": "#dce4d1", "--ocean-hi": "#eef1e4", "--land": "#3a4a32",
+    "--paper": "#eef0e3", "--ink": "#26301f", "--muted": "#7c8a6c", "--rule": "#a8b58f",
+    "--field": "#f7f9ef", "--accent": "#5b7a3a", "--accent2": "#a3672f", "--gold": "#bf8f33",
+    "--c-lived": "#a3672f", "--c-visited": "#5b7a3a", "--on-accent": "#fff",
+    "--font": "Georgia,serif", "--font-display": '"Fraunces","Georgia",serif',
   },
   cute: {
-    "--ocean": "#fdf4f9", "--land": "#ecd9e6", "--paper": "#fdf5fa", "--ink": "#6f5a64",
-    "--muted": "#bda4b4", "--rule": "#f0d3e0", "--accent": "#f3a6c6", "--accent2": "#f3d089",
-    "--c-lived": "#f1a3c4", "--c-visited": "#eccb84",
-    "--font": '"Quicksand",system-ui,sans-serif', "--font-display": '"Quicksand",sans-serif',
+    "--ocean": "#fdf4f9", "--ocean-hi": "#fffafd", "--land": "#ecd9e6",
+    "--paper": "#fdf5fa", "--ink": "#6f5a64", "--muted": "#bda4b4", "--rule": "#f0d3e0",
+    "--field": "#fffbfe", "--accent": "#f3a6c6", "--accent2": "#f3d089", "--gold": "#f1cd7c",
+    "--c-lived": "#f1a3c4", "--c-visited": "#eccb84", "--on-accent": "#fff",
+    "--font": '"Quicksand",system-ui,sans-serif', "--font-display": '"Baloo 2","Quicksand",sans-serif',
   },
   classic: {
-    "--ocean": "#ece2cd", "--land": "#dccdab", "--paper": "#f1e8d3", "--ink": "#3a2f25",
-    "--muted": "#9a8467", "--rule": "#c3ad84", "--accent": "#a6442e", "--accent2": "#4a5a6a",
-    "--c-lived": "#a6442e", "--c-visited": "#4a5a6a",
+    "--ocean": "#ece2cd", "--ocean-hi": "#f5eedd", "--land": "#dccdab",
+    "--paper": "#f1e8d3", "--ink": "#3a2f25", "--muted": "#9a8467", "--rule": "#c3ad84",
+    "--field": "#f6efdd", "--accent": "#a6442e", "--accent2": "#4a5a6a", "--gold": "#9a6b34",
+    "--c-lived": "#a6442e", "--c-visited": "#4a5a6a", "--on-accent": "#fff",
     "--font": '"EB Garamond",Georgia,serif', "--font-display": '"Caveat",cursive',
   },
 };
