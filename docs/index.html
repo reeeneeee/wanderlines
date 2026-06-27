@@ -383,6 +383,12 @@
     transform:rotate(45deg);transition:transform .2s;margin-top:-4px}
   .acc[open]>summary::after{transform:rotate(-135deg);margin-top:3px}
   .acc-body{padding:0 16px 16px}
+  /* a matching "Collapse" button at the foot of each section so you needn't scroll back up to close it */
+  .acc-shut{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:14px;padding:9px 12px;
+    background:none;border:1px solid var(--rule);border-radius:9px;color:var(--muted);cursor:pointer;
+    font:inherit;font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;transition:color .15s,border-color .15s}
+  .acc-shut:hover{color:var(--accent);border-color:var(--accent)}
+  .acc-shut-car{font-size:14px;line-height:1;font-weight:700}
   .remember{margin-bottom:4px}
   .rem-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #00000012;font-size:14px}
   .rem-item:last-child{border-bottom:none}
@@ -2444,7 +2450,7 @@ function renderItinerary(){
   const openNow=[...document.querySelectorAll('#iti-body .acc[open]')].map(d=>d.querySelector('summary').dataset.t);
   const fresh=openNow.length===0;
   const isOpen=(key,def)=>fresh?def:openNow.includes(key);
-  const acc=(key,title,body,def)=>`<details class="iti-card acc"${isOpen(key,def)?' open':''}><summary data-t="${key}">${title}</summary><div class="acc-body">${body}</div></details>`;
+  const acc=(key,title,body,def)=>`<details class="iti-card acc"${isOpen(key,def)?' open':''}><summary data-t="${key}">${title}</summary><div class="acc-body">${body}<button type="button" class="acc-shut" aria-label="Collapse this section"><span class="acc-shut-car">⌃</span> Collapse ${title}</button></div></details>`;
   // intuitive order: overview → the route → who & how → your journal → reflection → notes for next time
   document.getElementById('iti-body').innerHTML=
     acc('overview','This journey',`<div class="stats" style="grid-template-columns:1fr 1fr">${stats.map(s=>`<div class="statbox"><div class="n">${s[0]}</div><div class="l">${s[1]}</div></div>`).join('')}</div>`,true)
@@ -2542,6 +2548,10 @@ function defaultFrame(){ return FRAME_BY_VIBE[state.theme]||'mat'; }
 document.getElementById('iti-back').onclick=()=>go('journeys');
 document.getElementById('acc-expand').onclick=()=>document.querySelectorAll('#iti-body .acc').forEach(d=>d.open=true);
 document.getElementById('acc-collapse').onclick=()=>document.querySelectorAll('#iti-body .acc').forEach(d=>d.open=false);
+// the "Collapse" button at the bottom of each section: close it and bring its header back into view
+document.getElementById('iti-body').addEventListener('click',e=>{ const b=e.target.closest('.acc-shut'); if(!b) return;
+  const d=b.closest('details.acc'); if(!d) return; d.open=false;
+  d.querySelector('summary').scrollIntoView({block:'nearest'}); });
 // render a journal entry to a pretty, shareable image - handwriting font + current vibe colors
 async function shareJournalEntry(j,e){
   if(!e) return;
