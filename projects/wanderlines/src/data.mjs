@@ -1,4 +1,4 @@
-// Seed journeys — mocked data (no backend), the current LOG shape from the design.
+// Seed journeys: mocked data (no backend), the current LOG shape from the design.
 export const JOURNEYS = [
   {
     id: "j1",
@@ -11,7 +11,7 @@ export const JOURNEYS = [
       { name: "Sam", age: "31", avatar: 1 },
     ],
     review: { rating: 5, returnq: "yes", highlight: "Angkor Wat at sunrise", eats: "Mango sticky rice off a Bangkok cart", stay: "Riverside guesthouse in Hoi An" },
-    remember: ["Book Angkor tickets the night before", "Pack lighter — laundry is cheap"],
+    remember: ["Book Angkor tickets the night before", "Pack lighter, laundry is cheap"],
     stops: [
       { name: "Bangkok", lon: 100.5, lat: 13.76, kind: "city" },
       { name: "Angkor Wat", lon: 103.87, lat: 13.41, kind: "unesco" },

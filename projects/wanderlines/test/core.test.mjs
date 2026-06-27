@@ -2,7 +2,7 @@
 import {
   haversineKm, groundCoveredKm, daysBetween, journeyStats,
   kmToMi, formatDistance, THEMES, THEME_ORDER, REQUIRED_TOKENS, STOP_KINDS,
-  LISTS, visitsOf, primaryVisit, syncPrimary, isWish, markColor, yearsTravelled,
+  LISTS, visitsOf, primaryVisit, syncPrimary, isWish, markColor, yearsTraveled,
 } from "../src/core.mjs";
 import { JOURNEYS } from "../src/data.mjs";
 import { icon, ICON_PATHS, VEHICLES, STOP_ICON } from "../src/icons.mjs";
@@ -38,7 +38,7 @@ ok("daysBetween missing = 0", daysBetween("2024-02-03", "") === 0);
 // stats over seed
 const s = journeyStats(JOURNEYS[0]);            // default miles
 ok("SE Asia distance in miles by default", s.distance.unit === "mi");
-ok("SE Asia 3 stops / 22 days / 2 travellers", s.stops === 3 && s.days === 22 && s.travellers === 2);
+ok("SE Asia 3 stops / 22 days / 2 travelers", s.stops === 3 && s.days === 22 && s.travelers === 2);
 ok("journeyStats honours km", journeyStats(JOURNEYS[0], "km").distance.unit === "km");
 
 // themes
@@ -55,7 +55,7 @@ ok("every vibe defines every required token", tokensOk);
 ok("each vibe has a distinct display font", fontsOk);
 ok("disco title font is Monoton", THEMES.disco["--font-display"].includes("Monoton"));
 
-// icons (no emoji — our own line set)
+// icons (no emoji, our own line set)
 ok("9 vehicles, each with a path", VEHICLES.length === 9 && VEHICLES.every((v) => ICON_PATHS[v]));
 ok("6 stop kinds map to icons", STOP_KINDS.every((k) => ICON_PATHS[STOP_ICON[k]]));
 ok("icon() returns an <svg>", icon("plane", 20).startsWith("<svg") && icon("plane").includes("currentColor"));
@@ -75,11 +75,11 @@ ok("syncPrimary mirrors listId/year onto the mark", (() => { const m = { visits:
 
 ok("a mark with any non-wish visit is not wish", isWish(multi) === false);
 ok("a wish-only mark is wish", isWish({ visits: [{ listId: "wishlist", year: 0 }] }) === true);
-ok("markColor uses the primary list colour", markColor(multi) === LISTS.find((l) => l.id === "lived").color);
+ok("markColor uses the primary list color", markColor(multi) === LISTS.find((l) => l.id === "lived").color);
 ok("markColor is null for wish-only", markColor({ listId: "wishlist" }) === null);
 
-ok("yearsTravelled counts distinct non-wish years across marks",
-  yearsTravelled({ a: multi, b: { listId: "visited", year: 2021 }, c: { listId: "wishlist", year: 2099 } }) === 2); // 2017, 2021; wish + dup excluded
+ok("yearsTraveled counts distinct non-wish years across marks",
+  yearsTraveled({ a: multi, b: { listId: "visited", year: 2021 }, c: { listId: "wishlist", year: 2099 } }) === 2); // 2017, 2021; wish + dup excluded
 ok("three default lists incl. one wish", LISTS.length === 3 && LISTS.filter((l) => l.wish).length === 1);
 
 console.log(`\n${passed} passed, ${failed} failed\n`);

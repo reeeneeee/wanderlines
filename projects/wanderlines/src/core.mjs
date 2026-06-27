@@ -1,4 +1,4 @@
-// Wanderlines — pure, dependency-free domain logic.
+// Wanderlines: pure, dependency-free domain logic.
 // Shared by the web UI (src/app.mjs) and the Node test suite (test/core.test.mjs),
 // so the numbers the app shows are the same ones the tests verify.
 
@@ -51,7 +51,7 @@ export function journeyStats(j, units = "mi") {
     distance: formatDistance(km, units),
     stops: (j.stops || []).length,
     days: daysBetween(j.start, j.end),
-    travellers: (j.travelers || []).length,
+    travelers: (j.travelers || []).length,
   };
 }
 
@@ -170,15 +170,15 @@ export function isWish(mark, lists = LISTS) {
   return !!(l && l.wish);
 }
 
-/** The scratch-off colour for a mark (null for wish / unknown). */
+/** The scratch-off color for a mark (null for wish / unknown). */
 export function markColor(mark, lists = LISTS) {
   const p = primaryVisit(mark, lists);
   const l = p && listById(lists, p.listId);
   return l && !l.wish ? l.color : null;
 }
 
-/** Distinct non-wish years across all marks — the "years travelled" stat. */
-export function yearsTravelled(marks, lists = LISTS) {
+/** Distinct non-wish years across all marks, the "years traveled" stat. */
+export function yearsTraveled(marks, lists = LISTS) {
   const ys = new Set();
   Object.values(marks || {}).forEach((m) =>
     visitsOf(m).forEach((v) => {

@@ -1,4 +1,4 @@
-// Wanderlines web slice — the Journeys log, rendered from real shared core logic.
+// Wanderlines web slice: the Journeys log, rendered from real shared core logic.
 import { THEMES, THEME_ORDER, journeyStats } from "./core.mjs";
 import { icon, STOP_ICON } from "./icons.mjs";
 import { JOURNEYS, THEME_LABELS } from "./data.mjs";
@@ -42,7 +42,7 @@ function journeyCard(j) {
       <div><b>${s.distance.value}</b><span>${s.distance.unit} covered</span></div>
       <div><b>${s.stops}</b><span>stops</span></div>
       <div><b>${s.days}</b><span>days</span></div>
-      <div><b>${s.travellers}</b><span>travellers</span></div>
+      <div><b>${s.travelers}</b><span>travelers</span></div>
     </div>
     <div class="stops">${chips}</div>
     ${j.review?.highlight ? `<div class="hl">“${j.review.highlight}”</div>` : ""}

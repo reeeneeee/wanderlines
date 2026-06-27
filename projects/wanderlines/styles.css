@@ -1,4 +1,4 @@
-/* Every colour + font is a CSS variable the app sets per theme — fully token-driven. */
+/* Every color + font is a CSS variable the app sets per theme, fully token-driven. */
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {

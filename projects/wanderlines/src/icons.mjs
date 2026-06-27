@@ -1,4 +1,4 @@
-// Wanderlines line-icons (extracted from the design) — single-stroke, currentColor.
+// Wanderlines line-icons (extracted from the design): single-stroke, currentColor.
 export const ICON_PATHS = {
   car: "<path d=\"M5 11l2-4.2A2 2 0 0 1 8.8 5.6h6.4a2 2 0 0 1 1.8 1.2L19 11\"/><rect x=\"3.5\" y=\"11\" width=\"17\" height=\"5\" rx=\"1.3\"/><circle cx=\"7.5\" cy=\"17.5\" r=\"1.4\"/><circle cx=\"16.5\" cy=\"17.5\" r=\"1.4\"/>",
   bus: "<rect x=\"4\" y=\"4\" width=\"16\" height=\"13\" rx=\"2.4\"/><path d=\"M4 12h16M9 4v8\"/><circle cx=\"8\" cy=\"19\" r=\"1.2\"/><circle cx=\"16\" cy=\"19\" r=\"1.2\"/>",
