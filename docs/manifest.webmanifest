@@ -1,0 +1,17 @@
+{
+  "name": "Wanderlines",
+  "short_name": "Wanderlines",
+  "description": "A free travel log: scratch off the countries you've been to, log your journeys, and make share-worthy maps.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#edd2a0",
+  "theme_color": "#df4d12",
+  "categories": ["travel", "lifestyle", "maps"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
