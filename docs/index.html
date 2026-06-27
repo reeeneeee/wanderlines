@@ -2388,6 +2388,26 @@ function compressPhoto(file, maxDim=1280, quality=0.82){
     else fallback();
   });
 }
+// Re-compress a photo that's already stored as a data URL (for ones saved full-res before
+// compression existed). These oversized photos are what overflow localStorage and break saves.
+function compressDataURL(dataURL, maxDim=1280, quality=0.82){
+  return new Promise(resolve=>{ const im=new Image();
+    im.onload=()=>{ let w=im.naturalWidth,h=im.naturalHeight,nw=w,nh=h; if(!w||!h){ resolve(dataURL); return; }
+      if(Math.max(w,h)>maxDim){ const s=maxDim/Math.max(w,h); nw=Math.round(w*s); nh=Math.round(h*s); }
+      const c=document.createElement('canvas'); c.width=nw; c.height=nh; c.getContext('2d').drawImage(im,0,0,nw,nh);
+      try{ resolve(c.toDataURL('image/jpeg',quality)); }catch(e){ resolve(dataURL); } };
+    im.onerror=()=>resolve(dataURL); im.src=dataURL; });
+}
+// Shrink any oversized journal photos already in state so everything fits localStorage + syncs fast.
+let shrankPhotos=false;
+async function shrinkExistingPhotos(){
+  if(shrankPhotos) return; shrankPhotos=true; let changed=false;
+  for(const j of (state.journeys||[])) for(const e of (j.journal||[])){
+    if(e && typeof e.photo==='string' && e.photo.length>180000){
+      try{ const small=await compressDataURL(e.photo); if(small && small.length<e.photo.length){ e.photo=small; changed=true; } }catch(_){}
+    } }
+  if(changed){ saveState(); if(currentItinerary) renderItinerary(); }
+}
 function renderItinerary(){
   const j=currentItinerary; if(!j) return;
   j.travelers=j.travelers||[]; j.modes=j.modes||[]; j.review=j.review||{}; j.journal=j.journal||[];
@@ -3017,6 +3037,7 @@ function hydrateFromCloud(obj){
   if(obj&&obj.prefs){ if(obj.prefs.theme) applyTheme(obj.prefs.theme,true); if(obj.prefs.units) applyUnits(obj.prefs.units,true);
     state.nativeNames=!!obj.prefs.native; try{ localStorage.setItem('wl_native',obj.prefs.native?'1':'0'); }catch(e){} }
   saveStateLocal();
+  shrankPhotos=false;   // freshly-loaded cloud data may carry full-res photos: let the shrink pass run
   // absorb earned badges silently so loading your map doesn't set off a parade
   seenBadges=new Set(); BADGES.forEach(b=>{ try{ if(b.test()) seenBadges.add(b.id); }catch(_){} });
   if(typeof wsel!=='undefined' && wsel) paintWorld();
@@ -3033,13 +3054,21 @@ function freshStartState(){
   seenBadges=new Set(); BADGES.forEach(b=>{ try{ if(b.test()) seenBadges.add(b.id); }catch(_){} });
   if(typeof wsel!=='undefined' && wsel) paintWorld();
 }
+// Returns 'hydrated' (cloud loaded), 'kept-local' (local was newer, do not overwrite), or 'empty'.
 async function loadCloudInto(){
-  if(!sb||!cloudUser) return false;
-  try{ const {data,error}=await sb.from('user_data').select('data').eq('user_id',cloudUser.id).maybeSingle();
-    if(error||!data||!data.data) return false;
-    if(Object.keys(data.data).length){ hydrateFromCloud(data.data); return true; }
+  if(!sb||!cloudUser) return 'empty';
+  try{ const {data,error}=await sb.from('user_data').select('data,updated_at').eq('user_id',cloudUser.id).maybeSingle();
+    if(error||!data||!data.data||!Object.keys(data.data).length) return 'empty';
+    // If unsynced local edits are newer than what's in the cloud, keep them (and push up) instead
+    // of clobbering them with a stale cloud copy. This is the "reload made my entries disappear" bug.
+    let localTs=0, localHasData=false;
+    try{ const d=JSON.parse(localStorage.getItem('wl_data')||'null');
+      if(d){ localTs=Date.parse(d._ts)||0; localHasData=!!(d.journeys&&d.journeys.length)||!!(d.marks&&Object.keys(d.marks).length); } }catch(_){}
+    const cloudTs=Date.parse(data.updated_at)||0;
+    if(localHasData && localTs && localTs > cloudTs+2000) return 'kept-local';
+    hydrateFromCloud(data.data); return 'hydrated';
   }catch(e){}
-  return false;
+  return 'empty';
 }
 function scheduleCloudPush(){ if(!sb||!cloudUser) return; clearTimeout(cloudPushTimer); cloudPushTimer=setTimeout(pushCloud,2500); }
 async function pushCloud(){ if(!sb||!cloudUser) return;
@@ -3053,10 +3082,12 @@ async function onSignedIn(session){
   $('auth').classList.remove('checking');
   authMsg('');
   try{ history.replaceState(null,'',location.pathname); }catch(e){}   // strip the #access_token from the address bar
-  let had=false; try{ had=await loadCloudInto(); }catch(e){}   // pull this account's map
-  if(!had) freshStartState();         // brand-new account: clean map (keeps the example journey)
-  else migrateStopNotesToJournal();   // fold any legacy per-stop notes into the journal
-  pushCloud();                        // make sure a row exists for this user
+  let res='empty'; try{ res=await loadCloudInto(); }catch(e){}   // pull this account's map
+  if(res==='empty') freshStartState();         // brand-new account: clean map (keeps the example journey)
+  else if(res==='hydrated') migrateStopNotesToJournal();   // fold any legacy per-stop notes into the journal
+  // 'kept-local' keeps the newer local edits untouched
+  shrinkExistingPhotos();             // shrink any full-res photos saved before compression existed
+  pushCloud();                        // make sure the cloud has the latest (esp. for kept-local)
   const vis=v=>document.getElementById('view-'+v)&&!document.getElementById('view-'+v).classList.contains('hidden');
   if(vis('account')) renderAccount();
   if(vis('journeys')) renderJourneys();
@@ -3123,9 +3154,16 @@ Object.keys(VIBE_DISPLAY).forEach(vibe=>{
 // paint our own line-icons into every static [data-icon] slot (no emoji)
 document.querySelectorAll('[data-icon]').forEach(el=>{ el.innerHTML=ICON(el.dataset.icon, +(el.dataset.isz)||18); });
 // ---------------- persistence: everything you log survives reloads ----------------
-function saveStateLocal(){ try{ localStorage.setItem('wl_data',JSON.stringify({
-  marks:state.marks, regionMarks:state.regionMarks, places:state.places,
-  lists:state.lists, journeys:state.journeys, year:state.year, extraUnesco:state.extraUnesco, airports:state.airports })); }catch(e){} }
+let lastSaveTs='';
+function saveStateLocal(){ lastSaveTs=new Date().toISOString();
+  const blob=JSON.stringify({ _ts:lastSaveTs,
+    marks:state.marks, regionMarks:state.regionMarks, places:state.places,
+    lists:state.lists, journeys:state.journeys, year:state.year, extraUnesco:state.extraUnesco, airports:state.airports });
+  try{ localStorage.setItem('wl_data',blob); }
+  catch(e){ // out of localStorage room (almost always oversized photos): shrink them and retry
+    if(!shrankPhotos){ shrinkExistingPhotos(); }
+    try{ localStorage.setItem('wl_data',blob); }catch(_){}
+  } }
 // saveState persists locally AND (when signed in) schedules a debounced sync to the cloud
 function saveState(){ saveStateLocal(); if(typeof scheduleCloudPush==='function') scheduleCloudPush(); }
 function loadState(){ try{ const d=JSON.parse(localStorage.getItem('wl_data')||'null'); if(!d) return;
@@ -3137,11 +3175,12 @@ function loadState(){ try{ const d=JSON.parse(localStorage.getItem('wl_data')||'
 }catch(e){} }
 loadState();
 migrateStopNotesToJournal();   // fold any legacy per-stop notes into the journal on local load
+setTimeout(shrinkExistingPhotos,1200);   // quietly shrink any oversized photos saved before compression existed
 loadCountryData();
 let savedNative=false; try{ savedNative=localStorage.getItem('wl_native')==='1'; }catch(e){} state.nativeNames=savedNative;
 setInterval(saveState,3000);
-document.addEventListener('visibilitychange',()=>{ if(document.hidden) saveState(); });
-window.addEventListener('pagehide',saveState);
+document.addEventListener('visibilitychange',()=>{ if(document.hidden){ saveState(); pushCloud(); } });
+window.addEventListener('pagehide',()=>{ saveState(); pushCloud(); });
 
 applyTheme(savedTheme,false);
 let savedUnits='mi'; try{ savedUnits=localStorage.getItem('wl_units')||'mi'; }catch(e){} applyUnits(savedUnits,false);
