@@ -2768,7 +2768,7 @@ function enterApp(email){ state.user=email||'traveler@wanderlines.app'; const ae
 
 $('auth-submit').onclick=async()=>{
   const email=$('au-email').value.trim(), pass=$('au-pass').value, name=($('au-name')&&$('au-name').value.trim())||'';
-  if(!sb){ if(email) enterApp(email); else authMsg('Enter your email.','err'); return; }       // degraded/offline mode
+  if(!sb){ authMsg('Can’t reach the sign-in service right now. Check your connection and reload.','err'); return; }
   if(!email||!pass){ authMsg('Enter your email and a password (6+ characters).','err'); return; }
   const btn=$('auth-submit'), label=btn.textContent; btn.disabled=true; btn.textContent='One sec…'; authMsg('');
   try{
