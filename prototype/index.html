@@ -311,7 +311,7 @@
   .jstops{display:flex;flex-direction:column;gap:6px;margin-top:10px}
   .jstop{display:flex;align-items:center;gap:9px;font-size:13px;background:var(--field);border:1px solid var(--rule);border-radius:11px;padding:8px 10px}
   .jstop.dragging{opacity:.6;border-color:var(--accent);background:var(--hover)}
-  .jstop .jdrag{cursor:grab;color:var(--muted);font-size:16px;line-height:1;flex:none;touch-action:none;padding:0 2px}
+  .jstop .jdrag{cursor:grab;color:var(--muted);font-size:18px;line-height:1;flex:none;touch-action:none;padding:8px 8px;margin:-8px -4px -8px -2px;align-self:stretch;display:flex;align-items:center}
   .jstop.dragging .jdrag{cursor:grabbing}
   .jstop .seq{background:var(--accent);color:var(--on-accent);width:18px;height:18px;border-radius:50%;font-size:10px;display:inline-flex;align-items:center;justify-content:center;flex:none}
   .jstop .jname{flex:1;display:flex;align-items:center;gap:7px;min-width:0}
@@ -2616,17 +2616,26 @@ function renderDraftStops(){
   box.querySelectorAll('.rm').forEach(el=>el.onclick=()=>{ draftStops.splice(+el.dataset.i,1); renderDraftStops(); persistDraft(); });
   makeSortable(box);
 }
-// pointer-based drag reorder (works on desktop + touch); rebuilds the order from the DOM on drop
+// pointer-based drag reorder (works on desktop + touch); rebuilds the order from the DOM on drop.
+// The pointer is captured on the STABLE container (not the row), because reordering a row that holds
+// the captured element makes browsers drop the capture and the drag dies halfway. Container stays put.
 function makeSortable(box){
-  box.querySelectorAll('.jstop').forEach(row=>{ const h=row.querySelector('.jdrag');
-    h.onpointerdown=e=>{ e.preventDefault(); row.classList.add('dragging'); const pid=e.pointerId; try{h.setPointerCapture(pid);}catch(_){}
+  box.querySelectorAll('.jstop .jdrag').forEach(h=>{
+    h.onpointerdown=e=>{ if(e.button>0) return; e.preventDefault();
+      const row=h.closest('.jstop'); if(!row) return; const pid=e.pointerId;
+      row.classList.add('dragging'); box.style.userSelect='none';
+      try{ box.setPointerCapture(pid); }catch(_){}
       const move=mv=>{ const others=[...box.querySelectorAll('.jstop')].filter(r=>r!==row);
-        const after=others.find(r=>{ const b=r.getBoundingClientRect(); return mv.clientY < b.top + b.height/2; });
-        if(after) box.insertBefore(row, after); else box.appendChild(row); };
-      const up=()=>{ try{h.releasePointerCapture(pid);}catch(_){} row.classList.remove('dragging'); h.onpointermove=null; h.onpointerup=null;
-        const order=[...box.querySelectorAll('.jstop')].map(r=>+r.dataset.i); draftStops=order.map(i=>draftStops[i]);
-        renderDraftStops(); persistDraft(); };
-      h.onpointermove=move; h.onpointerup=up; };
+        let target=null; for(const r of others){ const b=r.getBoundingClientRect(); if(mv.clientY < b.top + b.height/2){ target=r; break; } }
+        if(target) box.insertBefore(row, target); else box.appendChild(row);
+        [...box.querySelectorAll('.jstop .seq')].forEach((s,i)=>s.textContent=i+1); };   // live renumber while dragging
+      const end=()=>{ try{ box.releasePointerCapture(pid); }catch(_){}
+        box.onpointermove=null; box.onpointerup=null; box.onpointercancel=null; box.style.userSelect='';
+        row.classList.remove('dragging');
+        const order=[...box.querySelectorAll('.jstop')].map(r=>+r.dataset.i);
+        if(order.some((v,i)=>v!==i)){ draftStops=order.map(i=>draftStops[i]); persistDraft(); }
+        renderDraftStops(); };
+      box.onpointermove=move; box.onpointerup=end; box.onpointercancel=end; };
   });
 }
 ['jm-name','jm-start','jm-end'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('input',persistDraft); });
