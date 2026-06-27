@@ -2263,8 +2263,12 @@ function wrapText(ctx,text,cx,y,maxW,lh){ const words=(text||'').split(' '); let
 // ---------------- journeys (Mode B) ----------------
 function fmtDate(s){ if(!s) return ''; const d=new Date(s+'T00:00:00'); return isNaN(d)?s:d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
 function fmtRange(a,b){ if(!a&&!b) return 'No dates set'; if(a&&b) return fmtDate(a)+' – '+fmtDate(b); return fmtDate(a||b); }
+// keep journeys ordered by date, most recent first (undated trips fall to the bottom)
+function sortJourneysByDate(){ state.journeys.sort((a,b)=>{ const da=a.start||'', db=b.start||'';
+  if(!da&&!db) return 0; if(!da) return 1; if(!db) return -1; return db.localeCompare(da); }); }
 function renderJourneys(){
   const box=document.getElementById('journeys-list');
+  sortJourneysByDate();
   if(!state.journeys.length){ box.innerHTML='<div class="card"><div class="lead" style="margin:0">No journeys yet. Tap “New journey” to log a trip you’ve taken.</div></div>'; return; }
   box.innerHTML=state.journeys.map(j=>{
     const chips=j.stops.map((s,i)=>`<span class="jchip"><span class="seq">${i+1}</span>${STOP_KINDS[s.kind]||ICON('pin',16)} ${s.name}</span>`).join('')||'<span class="lead" style="font-size:12px">No stops yet</span>';
