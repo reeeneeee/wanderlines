@@ -9,6 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs@master/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
@@ -810,6 +811,7 @@
     <div class="field"><label>Email</label><input type="email" id="au-email" placeholder="you@email.com" autocomplete="email"/></div>
     <div class="field"><label>Password</label><input type="password" id="au-pass" placeholder="••••••••" autocomplete="current-password"/></div>
     <button class="btn primary" id="auth-submit">Sign in</button>
+    <div class="auth-msg" id="auth-msg" style="display:none;margin-top:10px;font-size:12.5px;line-height:1.45;text-align:center"></div>
     <div class="auth-foot" id="auth-foot">Don't have an account? <a id="auth-toggle">Create one</a></div>
   </div>
 </div>
@@ -2710,22 +2712,89 @@ function setAuthMode(m){
     : `Already have an account? <a id="auth-toggle">Sign in</a>`;
   $('auth-toggle').onclick=()=>setAuthMode(authMode==='signin'?'signup':'signin');
 }
-function enterApp(email){
-  state.user = email || 'traveler@wanderlines.app';
-  const ae=$('acct-email'); if(ae) ae.value=state.user;
-  $('auth').classList.add('hidden');
-  // first-time-use: auto-open the help tour once per device
-  let seen=false; try{ seen=localStorage.getItem('wl_seen_help')==='1'; }catch(e){}
-  if(!seen){ try{ localStorage.setItem('wl_seen_help','1'); }catch(e){}
-    setTimeout(()=>$('help').classList.add('open'),550); }
-}
-$('auth-submit').onclick=()=>enterApp($('au-email').value.trim());
-$('google-btn').onclick=()=>enterApp('you@gmail.com');
-const signout=$('signout-btn'); if(signout) signout.onclick=()=>{
-  state.user=null; $('au-email').value=''; $('au-pass').value=''; setAuthMode('signin');
-  $('auth').classList.remove('hidden');
-};
 $('auth-toggle').onclick=()=>setAuthMode(authMode==='signin'?'signup':'signin');
+
+// ---------------- Supabase backend: real accounts + cross-device sync ----------------
+const SB_URL='https://dkwhsvrgounkzwxncgmv.supabase.co';
+const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrd2hzdnJnb3Vua3p3eG5jZ212Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MTQwODgsImV4cCI6MjA5ODA5MDA4OH0.reI4vPEe5WrohcKgmSoPSV3d0z58hJrnm2vNIYNCfic';
+const sb = (window.supabase && SB_URL && SB_ANON) ? window.supabase.createClient(SB_URL, SB_ANON, { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:true } }) : null;
+let cloudUser=null, cloudPushTimer=null, GOOGLE_READY=false;
+function authMsg(t,kind){ const el=$('auth-msg'); if(!el) return; el.textContent=t||''; el.style.display=t?'block':'none'; el.style.color=(kind==='err')?'var(--accent)':'var(--muted)'; }
+
+// Hydrate the whole app from a saved cloud blob (same shape as Export/Backup), without a page reload.
+function hydrateFromCloud(obj){
+  const d=(obj&&obj.data)?obj.data:(obj||{});
+  state.marks=d.marks||{}; state.regionMarks=d.regionMarks||{}; state.places=d.places||{};
+  if(d.lists) state.lists=d.lists; state.journeys=Array.isArray(d.journeys)?d.journeys:[];
+  if(d.year) state.year=d.year; state.airports=d.airports||{}; state.extraUnesco=Array.isArray(d.extraUnesco)?d.extraUnesco:[];
+  state.extraUnesco.forEach(e=>{ if(!LANDMARKS.unesco.some(([n])=>n===e[0])) LANDMARKS.unesco.push(e); });
+  if(obj&&obj.prefs){ if(obj.prefs.theme) applyTheme(obj.prefs.theme,true); if(obj.prefs.units) applyUnits(obj.prefs.units,true);
+    state.nativeNames=!!obj.prefs.native; try{ localStorage.setItem('wl_native',obj.prefs.native?'1':'0'); }catch(e){} }
+  saveStateLocal();
+  // absorb earned badges silently so loading your map doesn't set off a parade
+  seenBadges=new Set(); BADGES.forEach(b=>{ try{ if(b.test()) seenBadges.add(b.id); }catch(_){} });
+  if(typeof wsel!=='undefined' && wsel) paintWorld();
+}
+async function loadCloudInto(){
+  if(!sb||!cloudUser) return false;
+  try{ const {data,error}=await sb.from('user_data').select('data').eq('user_id',cloudUser.id).maybeSingle();
+    if(error||!data||!data.data) return false;
+    if(Object.keys(data.data).length){ hydrateFromCloud(data.data); return true; }
+  }catch(e){}
+  return false;
+}
+function scheduleCloudPush(){ if(!sb||!cloudUser) return; clearTimeout(cloudPushTimer); cloudPushTimer=setTimeout(pushCloud,2500); }
+async function pushCloud(){ if(!sb||!cloudUser) return;
+  try{ await sb.from('user_data').upsert({ user_id:cloudUser.id, data:fullBackup(), updated_at:new Date().toISOString() },{ onConflict:'user_id' }); }catch(e){}
+}
+async function onSignedIn(session){
+  if(!session||!session.user) return;
+  cloudUser=session.user; state.user=session.user.email||'';
+  const ae=$('acct-email'); if(ae) ae.value=state.user;
+  await loadCloudInto();              // pull this account's map (no-op for a brand-new account)
+  $('auth').classList.add('hidden');
+  authMsg('');
+  pushCloud();                        // make sure a row exists for this user
+  const vis=v=>document.getElementById('view-'+v)&&!document.getElementById('view-'+v).classList.contains('hidden');
+  if(vis('account')) renderAccount();
+  if(vis('world')) paintWorld();
+  let seen=false; try{ seen=localStorage.getItem('wl_seen_help')==='1'; }catch(e){}
+  if(!seen){ try{ localStorage.setItem('wl_seen_help','1'); }catch(e){} setTimeout(()=>$('help').classList.add('open'),550); }
+}
+// Local-only fallback used when the backend can't load (offline / CDN blocked).
+function enterApp(email){ state.user=email||'traveler@wanderlines.app'; const ae=$('acct-email'); if(ae) ae.value=state.user; $('auth').classList.add('hidden');
+  let seen=false; try{ seen=localStorage.getItem('wl_seen_help')==='1'; }catch(e){}
+  if(!seen){ try{ localStorage.setItem('wl_seen_help','1'); }catch(e){} setTimeout(()=>$('help').classList.add('open'),550); } }
+
+$('auth-submit').onclick=async()=>{
+  const email=$('au-email').value.trim(), pass=$('au-pass').value, name=($('au-name')&&$('au-name').value.trim())||'';
+  if(!sb){ if(email) enterApp(email); else authMsg('Enter your email.','err'); return; }       // degraded/offline mode
+  if(!email||!pass){ authMsg('Enter your email and a password (6+ characters).','err'); return; }
+  const btn=$('auth-submit'), label=btn.textContent; btn.disabled=true; btn.textContent='One sec…'; authMsg('');
+  try{
+    if(authMode==='signup'){
+      const {data,error}=await sb.auth.signUp({ email, password:pass, options:{ data:{ name } } });
+      if(error){ authMsg(error.message,'err'); }
+      else if(data.session){ await onSignedIn(data.session); }
+      else { authMsg('Almost there! We sent a confirmation link to '+email+'. Click it, then come back and sign in.'); setAuthMode('signin'); }
+    } else {
+      const {data,error}=await sb.auth.signInWithPassword({ email, password:pass });
+      if(error){ authMsg(/confirm/i.test(error.message)?'Please confirm your email first (check your inbox), then sign in.':error.message,'err'); }
+      else if(data.session){ await onSignedIn(data.session); }
+    }
+  }catch(e){ authMsg('Something went wrong. Please try again.','err'); }
+  btn.disabled=false; btn.textContent=label;
+};
+$('google-btn').onclick=async()=>{
+  if(sb && GOOGLE_READY){ try{ await sb.auth.signInWithOAuth({ provider:'google', options:{ redirectTo: location.origin+location.pathname } }); }catch(e){ authMsg('Google sign-in failed. Try email & password.','err'); } }
+  else { authMsg('Google sign-in is being set up. For now, use email & password just below.'); }
+};
+const signout=$('signout-btn'); if(signout) signout.onclick=async()=>{
+  try{ if(sb) await sb.auth.signOut(); }catch(e){}
+  cloudUser=null; state.user=null;
+  try{ localStorage.removeItem('wl_data'); }catch(e){}   // clear local cache so the next person starts clean
+  location.reload();
+};
 
 // apply saved vibe before first paint so the map uses themed colors from the start
 let savedTheme='retro'; try{ savedTheme=localStorage.getItem('wl_theme')||'retro'; }catch(e){}
@@ -2744,9 +2813,11 @@ Object.keys(VIBE_DISPLAY).forEach(vibe=>{
 // paint our own line-icons into every static [data-icon] slot (no emoji)
 document.querySelectorAll('[data-icon]').forEach(el=>{ el.innerHTML=ICON(el.dataset.icon, +(el.dataset.isz)||18); });
 // ---------------- persistence: everything you log survives reloads ----------------
-function saveState(){ try{ localStorage.setItem('wl_data',JSON.stringify({
+function saveStateLocal(){ try{ localStorage.setItem('wl_data',JSON.stringify({
   marks:state.marks, regionMarks:state.regionMarks, places:state.places,
   lists:state.lists, journeys:state.journeys, year:state.year, extraUnesco:state.extraUnesco, airports:state.airports })); }catch(e){} }
+// saveState persists locally AND (when signed in) schedules a debounced sync to the cloud
+function saveState(){ saveStateLocal(); if(typeof scheduleCloudPush==='function') scheduleCloudPush(); }
 function loadState(){ try{ const d=JSON.parse(localStorage.getItem('wl_data')||'null'); if(!d) return;
   if(d.marks) state.marks=d.marks; if(d.regionMarks) state.regionMarks=d.regionMarks; if(d.places) state.places=d.places;
   if(d.lists) state.lists=d.lists; if(Array.isArray(d.journeys)) state.journeys=d.journeys; if(d.year) state.year=d.year;
@@ -2774,6 +2845,15 @@ document.getElementById('livemap-btn').onclick=openLiveMap;
 const startView=(location.hash||'').replace('#','');
 if(['regions','lists','account','timeline'].includes(startView)) go(startView); else ensureWorld();
 maybeShowShared();
+
+// Restore an existing login (sessions persist across reloads + devices) and react to sign-in events.
+(function(){
+  if(!sb){ authMsg('Working offline — sign in to sync once you reconnect.'); return; }
+  sb.auth.getSession().then(({data})=>{ if(data&&data.session) onSignedIn(data.session); }).catch(()=>{});
+  sb.auth.onAuthStateChange((event,session)=>{
+    if((event==='SIGNED_IN'||event==='TOKEN_REFRESHED') && session && (!cloudUser || cloudUser.id!==session.user.id)) onSignedIn(session);
+  });
+})();
 </script>
 </body>
 </html>
