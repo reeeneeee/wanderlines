@@ -318,6 +318,7 @@
   #journey-modal.open{display:flex;animation:fade .15s ease}
   #journey-modal .detail-card{max-height:92vh;overflow-y:auto}
   /* route line on the world map */
+  .route-halo{fill:none;stroke:var(--paper);stroke-linecap:round;stroke-linejoin:round;opacity:.95}
   .route-line{fill:none;stroke:var(--accent);stroke-linecap:round;stroke-linejoin:round;opacity:1}
   .route-pin{fill:var(--accent);stroke:#fff}
   .route-num{fill:#fff;font-weight:700;pointer-events:none}
@@ -1217,8 +1218,9 @@ const ROUTE_COLORS=['#df4d12','#0c8a6f','#7a5ea8','#d99421','#2f6f9f','#c2306e',
 const routeCurve=d3.line().curve(d3.curveCatmullRom.alpha(0.5)); // smooth the angles (not loopy)
 function drawOneRoute(j,color){
   const pts=j.stops.map(s=>wproj([s.lon,s.lat]));
-  if(pts.length>1) wRoute.append('path').attr('class','route-line')
-    .attr('d',routeCurve(pts)).attr('stroke-width',2.4/wk).style('stroke',color);
+  if(pts.length>1){ const d=routeCurve(pts);
+    wRoute.append('path').attr('class','route-halo').attr('d',d).attr('stroke-width',(2.4+1.8)/wk);
+    wRoute.append('path').attr('class','route-line').attr('d',d).attr('stroke-width',2.4/wk).style('stroke',color); }
   const g=wRoute.append('g').selectAll('g').data(j.stops).join('g').attr('class','rstop')
     .attr('transform',s=>{const p=wproj([s.lon,s.lat]);return `translate(${p[0]},${p[1]})`;})
     .style('cursor','pointer')
@@ -1231,7 +1233,9 @@ function drawOneRoute(j,color){
 // faint overlay version - small dots (distinctly smaller than landmark pins), no numbers
 function drawOverlayRoute(j,color){
   const pts=j.stops.map(s=>wproj([s.lon,s.lat]));
-  if(pts.length>1) wRoute.append('path').attr('class','route-line route-faint').attr('d',routeCurve(pts)).attr('stroke-width',1.4/wk).style('stroke',color);
+  if(pts.length>1){ const d=routeCurve(pts);
+    wRoute.append('path').attr('class','route-halo route-faint').attr('d',d).attr('stroke-width',(1.4+1.4)/wk);
+    wRoute.append('path').attr('class','route-line route-faint').attr('d',d).attr('stroke-width',1.4/wk).style('stroke',color); }
   wRoute.append('g').selectAll('circle').data(j.stops).join('circle').attr('class','route-dot')
     .attr('cx',s=>wproj([s.lon,s.lat])[0]).attr('cy',s=>wproj([s.lon,s.lat])[1]).attr('r',2.6/wk)
     .attr('stroke-width',1/wk).style('fill',color)
