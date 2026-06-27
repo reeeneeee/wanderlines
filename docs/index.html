@@ -2760,9 +2760,10 @@ async function onSignedIn(session){
   if(!session||!session.user) return;
   cloudUser=session.user; state.user=session.user.email||'';
   const ae=$('acct-email'); if(ae) ae.value=state.user;
-  await loadCloudInto();              // pull this account's map (no-op for a brand-new account)
-  $('auth').classList.add('hidden');
+  $('auth').classList.add('hidden');  // unlock the app immediately so a slow cloud read never traps you on the login screen
   authMsg('');
+  try{ history.replaceState(null,'',location.pathname); }catch(e){}   // strip the #access_token from the address bar
+  try{ await loadCloudInto(); }catch(e){}   // pull this account's map (no-op for a brand-new account)
   pushCloud();                        // make sure a row exists for this user
   const vis=v=>document.getElementById('view-'+v)&&!document.getElementById('view-'+v).classList.contains('hidden');
   if(vis('account')) renderAccount();

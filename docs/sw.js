@@ -1,6 +1,6 @@
 /* Wanderlines service worker: caches the app shell so it installs and launches offline.
    The map tiles and country data still come from the network (free public APIs). */
-const CACHE = 'wanderlines-v5';
+const CACHE = 'wanderlines-v6';
 const SHELL = [
   './',
   './index.html',
@@ -29,10 +29,11 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // App launches: serve the cached shell so it opens instantly / offline.
+  // App launches: always pull the freshest HTML from the network (bypass HTTP cache so an
+  // OAuth redirect never lands on a stale build); fall back to the cached shell only if offline.
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req).catch(() => caches.match('./index.html'))
+      fetch(req, { cache: 'no-store' }).catch(() => caches.match('./index.html'))
     );
     return;
   }
