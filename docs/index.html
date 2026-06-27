@@ -548,6 +548,18 @@
   .face.on{box-shadow:inset 0 0 0 2px var(--accent);border-color:var(--accent);color:var(--accent);font-weight:700}
   .face-cred{font-size:10px;color:var(--muted);opacity:.85;margin-top:4px;min-height:13px}
   .face-cred a{color:var(--muted);text-decoration:underline}
+  /* which layers to include when sharing the map */
+  .share-layers{display:flex;flex-wrap:wrap;gap:7px;margin:6px 2px 2px}
+  .slyr{display:inline-flex;align-items:center;border:1px solid var(--rule);background:var(--field);color:var(--muted);border-radius:20px;padding:6px 12px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;opacity:.5;transition:opacity .15s,color .15s,border-color .15s}
+  .slyr.on{opacity:1;color:var(--ink);border-color:var(--accent)}
+  .slyr .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+  .slyr .dot.lived{background:var(--c-lived)}
+  .slyr .dot.visited{background:var(--c-visited)}
+  .slyr .dot.wish{background:color-mix(in srgb,var(--land) 40%,var(--paper));border:1px solid var(--rule)}
+  .slyr .dot.routes{width:13px;height:3px;border-radius:2px;background:var(--accent)}
+  #wmap-prev{border-radius:14px;overflow:hidden;border:1px solid var(--rule);background:var(--ocean);min-height:160px;display:flex;align-items:center;justify-content:center}
+  #wmap-prev img{width:100%;display:block}
+  #wmap-prev .wmap-load{color:var(--muted);font-size:12px;padding:30px}
   /* passport share card */
   #card-modal{position:fixed;inset:0;z-index:98;background:#1e1b1699;display:none;align-items:center;justify-content:center;padding:24px;overflow-y:auto}
   #card-modal.open{display:flex;animation:fade .15s}
@@ -971,11 +983,14 @@
 <div id="livemap-modal">
   <div class="detail-card">
     <div class="dh"><h3 style="margin:0">Your travel map</h3><span class="x" id="livemap-x">✕</span></div>
-    <p class="lead" style="margin:0 0 10px">Every place you've been, on a real map. <b>1.</b> Pick a map style, <b>2.</b> then share or save.</p>
+    <p class="lead" style="margin:0 0 10px">Every place you've been, ready to share. Pick a map style, choose what to show, then save or share.</p>
     <div id="livemap"></div>
+    <div id="wmap-prev"><div class="wmap-load">Drawing your map…</div><img id="wmap-img" alt="Your Wanderlines map" style="display:none"/></div>
     <div class="bar-label" style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:12px 2px 0">Map style</div>
     <div class="face-row" id="face-row"></div>
     <div class="face-cred" id="face-cred"></div>
+    <div class="bar-label" style="font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:10px 2px 0">Show on map</div>
+    <div class="share-layers" id="share-layers"></div>
     <div class="share-btns" style="margin-top:12px">
       <button class="btn primary addbtn" id="livemap-download">Save image</button>
       <button class="btn addbtn" id="livemap-share" style="display:none">Share…</button>
@@ -2118,6 +2133,73 @@ const MAP_FACES=[
   {id:'sat',     name:'Satellite',url:'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', sub:'', max:19, attr:'Tiles © Esri. Source: Esri, Maxar, Earthstar Geographics'},
 ];
 let lmap=null, lmLayer=null, lmOverlay=[], curFace='voyager';
+// share controls: which map (our Wanderlines map vs a Leaflet tile map) and which layers to include
+let shareMode='wanderlines';
+let shareLayers={lived:true,visited:true,wish:true,routes:true};
+const SHARE_LAYER_DEFS=[['lived','Lived in'],['visited','Visited'],['wish','Wish list'],['routes','Routes']];
+function markShareLayer(m){ if(!m) return null; if(isWish(m)) return 'wish'; const p=primaryVisit(m); return (p&&p.listId==='lived')?'lived':'visited'; }
+function shareLayerOn(layer){ return layer==='wish'?shareLayers.wish:(layer==='lived'?shareLayers.lived:shareLayers.visited); }
+function renderShareLayerChips(){ const row=document.getElementById('share-layers'); if(!row) return;
+  row.innerHTML=SHARE_LAYER_DEFS.map(([k,lbl])=>`<button class="slyr ${shareLayers[k]?'on':''}" data-l="${k}"><span class="dot ${k}"></span>${lbl}</button>`).join('');
+  row.querySelectorAll('.slyr').forEach(el=>el.onclick=()=>{ shareLayers[el.dataset.l]=!shareLayers[el.dataset.l]; el.classList.toggle('on',shareLayers[el.dataset.l]); refreshSharePreview(); });
+}
+function refreshSharePreview(){ if(shareMode==='wanderlines') renderWmapPreview(); else if(lmap) plotTravels(); }
+// Render our own Wanderlines world map (current vibe) to a CORS-clean canvas, honoring the layer toggles.
+function snapshotWanderlines(){
+  if(!wfeats) return null;
+  const cs=getComputedStyle(document.documentElement), g=k=>cs.getPropertyValue(k).trim();
+  const ocean=g('--ocean')||'#edd2a0', land=g('--land')||'#39281f', lstroke=g('--land-stroke')||'#f7ecd6',
+        paper=g('--paper')||'#fff', ink=g('--ink')||'#222', field=g('--field')||'#eee', fDisp=g('--font-display')||'sans-serif';
+  const W=1120, head=70, mapH=Math.round(W*0.52), H=mapH+head, pad=18;
+  const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
+  x.fillStyle=paper; x.fillRect(0,0,W,H);
+  const proj=d3.geoNaturalEarth1(); proj.fitExtent([[pad,head+pad],[W-pad,H-pad]],{type:'Sphere'});
+  const path=d3.geoPath(proj,x);
+  x.beginPath(); path({type:'Sphere'}); x.fillStyle=ocean; x.fill();            // ocean
+  x.lineWidth=0.5; x.strokeStyle=lstroke; x.lineJoin='round';
+  wfeats.forEach(f=>{ const m=state.marks[f.id]; let fill=land;
+    if(m){ const layer=markShareLayer(m); if(shareLayerOn(layer)){
+      if(layer==='wish') fill=mixHex(land,paper,0.6);
+      else { const p=primaryVisit(m), wl=p&&listById(p.listId); fill=(wl&&!wl.wish&&wl.color)||land; }
+    } }
+    x.beginPath(); path(f); x.fillStyle=fill; x.fill(); x.stroke(); });
+  if(shareLayers.routes){
+    state.journeys.forEach((j,i)=>{ const pts=(j.stops||[]).filter(s=>s.lat!=null&&s.lon!=null).map(s=>proj([s.lon,s.lat])).filter(Boolean);
+      if(pts.length<2) return; const trace=()=>{ x.beginPath(); pts.forEach((p,k)=>k?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1])); };
+      x.lineCap='round'; x.lineJoin='round';
+      trace(); x.strokeStyle=paper; x.lineWidth=5.5; x.globalAlpha=.9; x.stroke();                 // halo
+      trace(); x.strokeStyle=ROUTE_COLORS[i%ROUTE_COLORS.length]; x.lineWidth=2.8; x.globalAlpha=1; x.stroke();
+      pts.forEach(p=>{ x.beginPath(); x.arc(p[0],p[1],3.1,0,7); x.fillStyle=ROUTE_COLORS[i%ROUTE_COLORS.length]; x.fill(); x.lineWidth=1.3; x.strokeStyle=paper; x.stroke(); });
+    });
+  }
+  x.fillStyle=field; x.fillRect(0,0,W,head);                                    // title bar
+  x.fillStyle=ink; x.textAlign='left'; x.textBaseline='middle'; x.font='600 30px '+fDisp;
+  let title='✦ WANDERLINES · where I’ve been'; if(x.measureText(title).width>W-48){ title='✦ WANDERLINES'; }
+  x.fillText(title,26,head/2+1); x.textBaseline='alphabetic';
+  return c;
+}
+function renderWmapPreview(){ const img=document.getElementById('wmap-img'), load=document.querySelector('#wmap-prev .wmap-load');
+  if(!wfeats){ loadCountryData(); if(load) load.style.display=''; img.style.display='none'; setTimeout(renderWmapPreview,250); return; }
+  const c=snapshotWanderlines(); if(!c){ setTimeout(renderWmapPreview,250); return; }
+  img.src=c.toDataURL('image/png'); img.style.display=''; if(load) load.style.display='none';
+}
+function pickShareFace(id){
+  if(id==='wanderlines'){ shareMode='wanderlines';
+    document.getElementById('livemap').style.display='none';
+    document.getElementById('wmap-prev').style.display='';
+    document.querySelectorAll('#face-row .face').forEach(el=>el.classList.toggle('on',el.dataset.face==='wanderlines'));
+    const vibe=(THEME_META.find(t=>t.id===state.theme)||{name:'current'}).name;
+    document.getElementById('face-cred').textContent='Your Wanderlines map, in the '+vibe+' vibe.';
+    renderWmapPreview();
+  } else { shareMode='leaflet';
+    document.getElementById('wmap-prev').style.display='none';
+    const lm=document.getElementById('livemap'); lm.style.display='';
+    document.querySelectorAll('#face-row .face').forEach(el=>el.classList.toggle('on',el.dataset.face===id));
+    if(lmap){ setFace(id); setTimeout(()=>{ lmap.invalidateSize(); plotTravels(); },60); }
+    else { lm.innerHTML='<div class="lead" style="padding:24px;text-align:center">Map library couldn’t load, but the ✦ Wanderlines map still works.</div>';
+      document.getElementById('face-cred').textContent=''; }
+  }
+}
 function setFace(id){ const f=MAP_FACES.find(x=>x.id===id)||MAP_FACES[0]; curFace=f.id;
   if(lmLayer) lmap.removeLayer(lmLayer);
   lmLayer=L.tileLayer(f.url,{subdomains:f.sub||'abc',maxZoom:f.max||19,attribution:f.attr,crossOrigin:'anonymous'}).addTo(lmap);
@@ -2125,21 +2207,24 @@ function setFace(id){ const f=MAP_FACES.find(x=>x.id===id)||MAP_FACES[0]; curFac
   document.getElementById('face-cred').textContent='Tiles: '+f.attr;
 }
 function buildFaceRow(){ const row=document.getElementById('face-row');
-  row.innerHTML=MAP_FACES.map(f=>`<button class="face ${f.id===curFace?'on':''}" data-face="${f.id}">${f.name}</button>`).join('');
-  row.querySelectorAll('.face').forEach(el=>el.onclick=()=>setFace(el.dataset.face));
+  const faces=[{id:'wanderlines',name:'✦ Wanderlines'}].concat(MAP_FACES);
+  row.innerHTML=faces.map(f=>{ const on = f.id==='wanderlines' ? shareMode==='wanderlines' : (shareMode==='leaflet'&&f.id===curFace);
+    return `<button class="face ${on?'on':''}" data-face="${f.id}">${f.name}</button>`; }).join('');
+  row.querySelectorAll('.face').forEach(el=>el.onclick=()=>pickShareFace(el.dataset.face));
 }
 function plotTravels(){
   lmOverlay.forEach(o=>lmap.removeLayer(o)); lmOverlay=[];
   const cs=getComputedStyle(document.documentElement), accent=cs.getPropertyValue('--accent').trim()||'#d4561f';
   const pts=[];
   Object.entries(state.marks).forEach(([id,m])=>{ const ll=C_LL[id]; if(!ll) return;
+    if(!shareLayerOn(markShareLayer(m))) return;   // respect the share layer toggles
     const p=primaryVisit(m), wl=listById(p.listId), wish=wl&&wl.wish, paper=cs.getPropertyValue('--paper').trim()||'#fff', col=wish?mixHex(cs.getPropertyValue('--land').trim()||'#999',paper,0.45):(colorFor(m)||accent);
     const years=[...new Set(visitsOf(m).map(v=>v.year).filter(Boolean))].sort();
     const mk=L.circleMarker([ll[0],ll[1]],{radius:wish?5:7,color:'#fff',weight:1.6,fillColor:col,fillOpacity:.95});
     mk.bindPopup(`<b>${displayName(id)}</b><br>${wish?'Wish list':(wl?wl.name:'')}${years.length?' · '+years.join(', '):''}`);
     mk.addTo(lmap); lmOverlay.push(mk); if(!wish) pts.push([ll[0],ll[1]]);
   });
-  state.journeys.forEach(j=>{ const line=(j.stops||[]).filter(s=>s.lat!=null&&s.lon!=null).map(s=>[s.lat,s.lon]);
+  if(shareLayers.routes) state.journeys.forEach(j=>{ const line=(j.stops||[]).filter(s=>s.lat!=null&&s.lon!=null).map(s=>[s.lat,s.lon]);
     if(line.length>1){ const pl=L.polyline(line,{color:accent,weight:2.5,opacity:.75}); pl.addTo(lmap); lmOverlay.push(pl); } });
   if(pts.length){ try{ lmap.fitBounds(L.latLngBounds(pts).pad(0.25)); }catch(e){} }
 }
@@ -2156,10 +2241,11 @@ async function snapshotLeaflet(){
     const r=t.getBoundingClientRect(); try{ x.drawImage(t, r.left-mr.left, r.top-mr.top+head, r.width, r.height); }catch(e){} });
   // journey routes then markers, projected to the live view
   x.save(); x.beginPath(); x.rect(0,head,size.x,size.y); x.clip();
-  state.journeys.forEach(j=>{ const pts=(j.stops||[]).filter(s=>s.lat!=null&&s.lon!=null); if(pts.length<2) return;
+  if(shareLayers.routes) state.journeys.forEach(j=>{ const pts=(j.stops||[]).filter(s=>s.lat!=null&&s.lon!=null); if(pts.length<2) return;
     x.beginPath(); pts.forEach((s,i)=>{ const p=lmap.latLngToContainerPoint([s.lat,s.lon]); i?x.lineTo(p.x,p.y+head):x.moveTo(p.x,p.y+head); });
     x.strokeStyle=accent; x.lineWidth=3; x.globalAlpha=.75; x.stroke(); x.globalAlpha=1; });
   Object.entries(state.marks).forEach(([id,m])=>{ const ll=C_LL[id]; if(!ll) return;
+    if(!shareLayerOn(markShareLayer(m))) return;
     const wish=isWish(m), col=wish?mixHex(cs.getPropertyValue('--land').trim()||'#999',paper,0.45):(colorFor(m)||accent), p=lmap.latLngToContainerPoint([ll[0],ll[1]]);
     x.beginPath(); x.arc(p.x,p.y+head,wish?5:7,0,7); x.fillStyle=col; x.fill(); x.lineWidth=1.6; x.strokeStyle='#fff'; x.stroke(); });
   x.restore();
@@ -2173,17 +2259,19 @@ async function snapshotLeaflet(){
 }
 function openLiveMap(){
   const modal=document.getElementById('livemap-modal'); modal.classList.add('open'); loadCountryData();
+  renderShareLayerChips();
   setTimeout(()=>{
-    if(!window.L){ document.getElementById('livemap').innerHTML='<div class="lead" style="padding:24px;text-align:center">Map library couldn’t load.</div>'; return; }
-    if(!lmap){ lmap=L.map('livemap',{worldCopyJump:true,minZoom:1}).setView([20,0],2); buildFaceRow(); setFace(curFace); }
-    lmap.invalidateSize(); plotTravels(); setTimeout(()=>lmap.invalidateSize(),120);
+    if(window.L && !lmap){ lmap=L.map('livemap',{worldCopyJump:true,minZoom:1}).setView([20,0],2); setFace(curFace); }
+    buildFaceRow();
+    pickShareFace(shareMode==='leaflet'?curFace:'wanderlines');   // default: our own Wanderlines map
   },140);
 }
 async function shareLiveMap(forceDownload){
   const btn=document.getElementById(forceDownload?'livemap-download':'livemap-share'), label=btn.textContent;
   btn.textContent='Rendering…'; btn.disabled=true;
   try{
-    const c=await snapshotLeaflet();
+    const c = shareMode==='wanderlines' ? snapshotWanderlines() : await snapshotLeaflet();
+    if(!c) throw new Error('no map');
     const blob=await new Promise(r=>c.toBlob(r,'image/png'));
     if(!blob) throw new Error('blob');
     const file=new File([blob],'wanderlines-map.png',{type:'image/png'});
