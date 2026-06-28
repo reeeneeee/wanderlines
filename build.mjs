@@ -24,18 +24,18 @@ if('serviceWorker' in navigator){ window.addEventListener('load',function(){ nav
 </script>
 </body>`;
 
-let html = readFileSync(SRC, "utf8");
-if ((html.match(/<title>Wanderlines<\/title>/g) || []).length !== 1) throw new Error("expected exactly one <title>Wanderlines</title> in source");
-if ((html.match(/<\/body>/g) || []).length !== 1) throw new Error("expected exactly one </body> in source");
-html = html.replace("<title>Wanderlines</title>", HEAD).replace("</body>", SW_REG);
-writeFileSync(OUT, html);
-
 // bump wanderlines-vN -> wanderlines-v(N+1) so installed PWAs refresh
 let sw = readFileSync(SW, "utf8");
 const m = sw.match(/wanderlines-v(\d+)/);
 if (!m) throw new Error("could not find cache version in " + SW);
 const next = Number(m[1]) + 1;
 sw = sw.replace(/wanderlines-v\d+/, "wanderlines-v" + next);
+
+let html = readFileSync(SRC, "utf8");
+if ((html.match(/<title>Wanderlines<\/title>/g) || []).length !== 1) throw new Error("expected exactly one <title>Wanderlines</title> in source");
+if ((html.match(/<\/body>/g) || []).length !== 1) throw new Error("expected exactly one </body> in source");
+html = html.replace("<title>Wanderlines</title>", HEAD).replace("</body>", SW_REG).replaceAll("__APP_VER__", "v" + next);
+writeFileSync(OUT, html);
 writeFileSync(SW, sw);
 
 console.log(`built ${OUT} (${(html.length / 1024).toFixed(0)} KB) · service-worker cache -> wanderlines-v${next}`);
