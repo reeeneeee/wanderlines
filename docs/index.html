@@ -1864,11 +1864,19 @@ function buildLandmarkCard([layer,title,ic,col,ph]){
       : (loaded?'<div class="none">Nothing found</div>':'<div class="none">Loading…</div>');
     res.classList.add('open');
     res.querySelectorAll('.sr').forEach((el,i)=>el.onclick=()=>{ const h=hits[i]; if(!h) return;
+      if(state.places[pkey(layer,h.name)]) return;   // already logged
       logPlace(layer,h.name,h.lon,h.lat,state.year); saveState(); if(typeof renderMarks==='function') renderMarks();
-      refresh(); inp.value=''; res.classList.remove('open'); inp.focus(); });
+      refresh();
+      // keep the dropdown open + query intact so several sites can be logged from one search;
+      // just mark this row as logged. The dropdown closes when you click away (blur handler below).
+      const chip=el.querySelector('.rchip'); if(chip){ chip.textContent='✓ Logged'; chip.style.pointerEvents='none'; }
+      inp.focus();
+    });
   }
   inp.onfocus=()=>{ (layer==='parks'?loadParkStates:loadUnescoFull)(()=>{ if(inp.value.trim()) doSearch(); }); };
   inp.oninput=doSearch;
+  // close the results only when focus truly leaves the search (clicking a result refocuses the input)
+  inp.onblur=()=>{ setTimeout(()=>{ if(document.activeElement!==inp) res.classList.remove('open'); },180); };
   refresh();
   return card;
 }
