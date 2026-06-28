@@ -119,10 +119,13 @@
   [data-theme="classic"] .page h2,[data-theme="cute"] .page h2,
   [data-theme="classic"] .map-overlay-title h1,[data-theme="cute"] .map-overlay-title h1,
   [data-theme="classic"] .auth-brand .b,[data-theme="cute"] .auth-brand .b{text-transform:none;letter-spacing:0}
-  [data-theme="classic"] .brand{font-size:30px;line-height:1}
-  [data-theme="classic"] .page h2{font-size:23px;line-height:1.05;margin-bottom:2px}
-  [data-theme="classic"] .map-overlay-title h1{font-size:26px}
-  [data-theme="classic"] .auth-brand .b{font-size:36px}
+  [data-theme="classic"] .brand{font-size:35px;line-height:1}
+  [data-theme="classic"] .page h2{font-size:27px;line-height:1.05;margin-bottom:2px}
+  [data-theme="classic"] .map-overlay-title h1{font-size:30px}
+  [data-theme="classic"] .auth-brand .b{font-size:42px}
+  [data-theme="classic"] .journey .jn{font-size:19px}
+  [data-theme="classic"] .help-card h2{font-size:23px}
+  [data-theme="classic"] #iti-name{font-size:1.18em}
   [data-theme="cute"] .brand{font-size:23px}
   [data-theme="cute"] .page h2{font-size:16px;letter-spacing:.02em}
   [data-theme="cute"] .auth-brand .b{font-size:28px}
@@ -183,11 +186,6 @@
   #map-compass svg{width:100%;height:100%;display:block}
   [data-theme="classic"] #map-compass{display:block}
   @media (max-width:480px){ #map-compass{width:78px;height:78px;bottom:90px} }
-  /* classic decorative sailing ship adrift on the ocean */
-  #map-ship{position:absolute;display:none;width:74px;height:60px;right:9%;top:43%;color:var(--land-stroke);opacity:.3;pointer-events:none;z-index:4;transform:rotate(-3deg)}
-  #map-ship svg{width:100%;height:100%;display:block}
-  [data-theme="classic"] #map-ship{display:block}
-  @media (max-width:480px){ #map-ship{width:60px;height:48px;right:6%} }
   /* agent HUD viewfinder: corner brackets + a small classified-style tag framing the map */
   #hud-frame{position:absolute;inset:58px 12px 78px;pointer-events:none;z-index:4;display:none}
   [data-theme="sleek"] #hud-frame{display:block}
@@ -794,12 +792,6 @@
         <g fill="currentColor"><path d="M60 7 L65 60 L60 60 Z"/><path d="M113 60 L60 65 L60 60 Z"/><path d="M60 113 L55 60 L60 60 Z"/><path d="M7 60 L60 55 L60 60 Z"/></g>
         <g fill="currentColor" opacity=".5"><path d="M60 7 L55 60 L60 60 Z"/><path d="M113 60 L60 55 L60 60 Z"/><path d="M60 113 L65 60 L60 60 Z"/><path d="M7 60 L60 65 L60 60 Z"/></g>
       </svg></div>
-      <div id="map-ship" aria-hidden="true"><svg viewBox="0 0 120 96"><g fill="currentColor">
-        <path d="M22 60 L98 60 L89 74 Q60 80 31 74 Z"/>
-        <rect x="47" y="22" width="2.4" height="38"/><rect x="72" y="14" width="2.4" height="46"/>
-        <path d="M48 26 C66 30 66 46 48 52 Z"/><path d="M48 26 C32 30 32 46 48 52 Z" opacity=".6"/>
-        <path d="M73 18 C92 24 92 46 73 54 Z"/><path d="M73 18 C55 24 55 46 73 54 Z" opacity=".6"/>
-        <path d="M73 12 L86 15.5 L73 19 Z"/></g></svg></div>
       <div id="hud-frame" aria-hidden="true"><i></i><i></i><i></i><i></i><span class="hud-tag">◦ WANDERLINES // FIELD MAP</span></div>
       <div class="mapctl">
         <div class="searchbox">
@@ -3609,7 +3601,7 @@ Object.keys(VIBE_DISPLAY).forEach(vibe=>{
   }catch(_){}
 });
 // app version (build.mjs injects the real number) so you can confirm you're on the latest build
-const APP_VER='v61';
+const APP_VER='v62';
 try{ const vl=document.getElementById('app-ver-line'); if(vl) vl.textContent='Wanderlines '+(APP_VER.indexOf('APP_VER')>=0?'(dev)':APP_VER); }catch(_){}
 // paint our own line-icons into every static [data-icon] slot (no emoji)
 document.querySelectorAll('[data-icon]').forEach(el=>{ el.innerHTML=ICON(el.dataset.icon, +(el.dataset.isz)||18); });
