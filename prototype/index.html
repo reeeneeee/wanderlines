@@ -181,6 +181,9 @@
   .chip .chipx:hover{opacity:1;color:var(--accent)}
   .chip .lmtag{display:inline-flex;vertical-align:middle;margin-right:4px}
   .chip .lmtag svg{display:block}
+  .chip .chipyr{border:none;background:transparent;color:var(--accent);font:inherit;font-size:11px;font-weight:600;cursor:pointer;
+    padding:0 1px;margin-left:4px;border-bottom:1px dotted var(--accent);border-radius:0;-webkit-appearance:none;appearance:none}
+  .chip .chipyr:focus{outline:none;background:var(--field)}
   .field{margin-bottom:12px}
   .field label{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
   .field input{width:100%;border:1px solid var(--rule);background:var(--field);border-radius:8px;padding:10px 12px;font:inherit}
@@ -1834,6 +1837,8 @@ function renderLists(){
 // keyed parks:/unesco: (so map layers, badges and everything already logged are preserved); only the
 // Lists display is unified. A site that's both (e.g. Yellowstone) is searchable as both types.
 const LM_TYPE={parks:{ic:'park',label:'National Park',col:'#2f7d4f'}, unesco:{ic:'unesco',label:'UNESCO',col:'#6c5ce0'}};
+function lmYearOptions(sel){ const now=new Date().getFullYear(), top=Math.max(now, +state.year||now);
+  let o=`<option value="">+ year</option>`; for(let y=top; y>=1950; y--) o+=`<option value="${y}"${y===+sel?' selected':''}>${y}</option>`; return o; }
 function landmarkIndexAll(){ return landmarkIndex('parks').concat(landmarkIndex('unesco')); }
 function landmarkSearchAll(q){ const nq=normSearch(q); if(!nq) return [];
   const hits=landmarkIndexAll().map(p=>{ const nameHit=normSearch(p.name).includes(nq);
@@ -1861,10 +1866,12 @@ function buildLandmarkCard(){
       .map(([k,v])=>{ const layer=k.split(':')[0]; return {layer,name:k.slice(layer.length+1),...v}; }).sort((a,b)=>a.name.localeCompare(b.name));
     const visited=entries.filter(e=>e.listId==='visited').length, wish=entries.filter(e=>e.listId==='wishlist').length;
     ct.textContent=`${visited} visited${wish?` · ${wish} wish`:''}`;
-    chips.innerHTML = entries.length ? '<div class="chips">'+entries.map(e=>{ const tm=LM_TYPE[e.layer]||LM_TYPE.unesco;
-        return `<span class="chip${e.listId==='wishlist'?' wishchip':''}" data-layer="${e.layer}" data-nm="${e.name.replace(/"/g,'&quot;')}"><span class="lmtag" style="color:${tm.col}">${ICON(tm.ic,11)}</span>${e.name}${e.listId==='visited'&&e.year?' · '+e.year:''} <span class="chipx">✕</span></span>`; }).join('')+'</div>'
+    chips.innerHTML = entries.length ? '<div class="chips">'+entries.map(e=>{ const tm=LM_TYPE[e.layer]||LM_TYPE.unesco, nm=e.name.replace(/"/g,'&quot;');
+        const yr = e.listId==='visited' ? `<select class="chipyr" data-layer="${e.layer}" data-nm="${nm}" title="Set the year you visited">${lmYearOptions(e.year)}</select>` : '';
+        return `<span class="chip${e.listId==='wishlist'?' wishchip':''}" data-layer="${e.layer}" data-nm="${nm}"><span class="lmtag" style="color:${tm.col}">${ICON(tm.ic,11)}</span>${e.name}${yr} <span class="chipx">✕</span></span>`; }).join('')+'</div>'
       : `<div class="lead" style="margin:4px 0 0;font-size:12px">None logged yet. Search above to add national parks and UNESCO sites.</div>`;
     chips.querySelectorAll('.chip').forEach(c=>{ const x=c.querySelector('.chipx'); if(x) x.onclick=()=>{ delete state.places[pkey(c.dataset.layer,c.dataset.nm)]; saveState(); refresh(); }; });
+    chips.querySelectorAll('.chipyr').forEach(sel=>sel.onchange=()=>{ const k=pkey(sel.dataset.layer,sel.dataset.nm); if(state.places[k]){ state.places[k].year=+sel.value||0; saveState(); } });
   }
   function doSearch(){ const q=inp.value.trim();
     if(!q){ res.classList.remove('open'); return; }
@@ -2037,8 +2044,7 @@ function renderTimeline(){
   const entries=[];
   Object.entries(state.marks).forEach(([id,m])=>{ visitsOf(m).forEach(v=>{ if(listById(v.listId)&&listById(v.listId).wish) return;
     entries.push({year:+v.year||0,name:displayName(id),flag:flagURL(id),kind:'country'}); }); });
-  if(z>=2){ Object.values(state.airports).forEach(a=>entries.push({year:+a.year||0,name:a.iata+' · '+(a.city||a.name),kind:'plane'}));
-    state.journeys.forEach(j=>{ const y=j.start?+j.start.slice(0,4):0; (j.stops||[]).forEach(s=>{ if(s.kind==='city') entries.push({year:y,name:s.name,kind:'city'}); }); }); }
+  if(z>=2){ state.journeys.forEach(j=>{ const y=j.start?+j.start.slice(0,4):0; (j.stops||[]).forEach(s=>{ if(s.kind==='city') entries.push({year:y,name:s.name,kind:'city'}); }); }); }
   if(z>=3){ Object.entries(state.places).forEach(([k,v])=>{ if(v.listId!=='visited')return; const layer=k.split(':')[0];
     entries.push({year:+v.year||0,name:k.slice(layer.length+1),kind:layer==='parks'?'park':'unesco'}); }); }
   const byYear={}; entries.forEach(e=>{ (byYear[e.year]=byYear[e.year]||[]).push(e); });
@@ -2047,7 +2053,7 @@ function renderTimeline(){
   box.innerHTML=years.map(y=>{
     const items=byYear[y].sort((a,b)=>a.name.localeCompare(b.name));
     return `<div class="tl-year"><div class="tl-y">${y}</div><div class="tl-items">`+
-      items.map(e=>`<span class="tl-entry tl-${e.kind}">${e.flag?`<img class="tl-flag" src="${e.flag}" alt="" loading="lazy"/>`:`<span class="tl-ic">${ICON(e.kind==='park'?'park':e.kind==='unesco'?'unesco':e.kind==='plane'?'plane':'city',14)}</span>`}<span class="tl-nm">${e.name}</span></span>`).join('')+
+      items.map(e=>`<span class="tl-entry tl-${e.kind}">${e.flag?`<img class="tl-flag" src="${e.flag}" alt="" loading="lazy"/>`:`<span class="tl-ic">${ICON(e.kind==='park'?'park':e.kind==='unesco'?'unesco':'city',14)}</span>`}<span class="tl-nm">${e.name}</span></span>`).join('')+
       `</div></div>`;
   }).join('');
 }
