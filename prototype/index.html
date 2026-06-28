@@ -23,12 +23,12 @@
     --font:"Jost",-apple-system,"Segoe UI",sans-serif;
     --font-display:"Bungee","Jost",sans-serif; --font-hand:"Caveat",cursive;
   }
-  [data-theme="sleek"]{ /* sleek - chic & luxurious: black, brushed silver, champagne gold, a slight red */
+  [data-theme="sleek"]{ /* sleek - chic & luxe: black, charcoal, champagne gold (lived) + bright platinum (visited) */
     --on-accent:#171204;
-    --ocean:#000000; --ocean-hi:#0b0c0e; --land:#1c1e23; --land-stroke:#000000;
-    --paper:#0d0e11; --ink:#eef0f3; --muted:#888e99; --rule:#2a2d34;
-    --field:#15171b; --hover:#1d2026; --accent:#c6a15b; --accent2:#aeb6c0; --gold:#d8b76a;
-    --c-lived:#9c3a31; --c-visited:#aeb6c0;
+    --ocean:#000000; --ocean-hi:#0c0d10; --land:#272b31; --land-stroke:#05060a;
+    --paper:#0d0e11; --ink:#eef0f3; --muted:#8d93a0; --rule:#2c2f37;
+    --field:#15171b; --hover:#1e2128; --accent:#d6b06a; --accent2:#aeb6c0; --gold:#e6c789;
+    --c-lived:#d6b06a; --c-visited:#e9edf2;
     --photo-filter:grayscale(.3) sepia(.1) contrast(1.12) brightness(1.02); --grain-opacity:.06; --route-dash:1 7; --grid:#23262d;
     --font:"Inter",-apple-system,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
     --font-display:"Inter",-apple-system,"SF Pro Display",sans-serif; --font-hand:"Inter",sans-serif;
@@ -54,17 +54,17 @@
   [data-theme="cute"]{ /* cute - bubblegum: saturated pink + a mint pop */
     --ocean:#ffe2ef; --ocean-hi:#fff1f7; --land:#f7bcd8; --land-stroke:#fff5fb;
     --paper:#fff0f7; --ink:#6a3c54; --muted:#b07d96; --rule:#f6c5dc; --on-accent:#fff;
-    --field:#fff7fb; --hover:#ffe6f3; --accent:#e8478f; --accent2:#37b88a; --gold:#e8a23a;
-    --c-lived:#f06bb0; --c-visited:#5fc9a3;
+    --field:#fff7fb; --hover:#ffe6f3; --accent:#e8478f; --accent2:#e8a23a; --gold:#edae3c;
+    --c-lived:#f06bb0; --c-visited:#f2c63f;
     --photo-filter:saturate(1.18) brightness(1.04) contrast(.97); --grain-opacity:.08; --route-dash:2 6; --grid:#f3a9cd;
     --font:"Quicksand",-apple-system,"Segoe UI",sans-serif;
     --font-display:"Chewy","Baloo 2",cursive; --font-hand:"Patrick Hand",cursive;
   }
-  [data-theme="classic"]{ /* classic - antique treasure map: aged parchment, dark ink coastlines, compass */
-    --ocean:#e5d3a8; --ocean-hi:#efe1bb; --land:#d6c597; --land-stroke:#4d3a20;
-    --paper:#ecdfbe; --ink:#3a2c1c; --muted:#937c54; --rule:#bda472;
-    --field:#f1e6c6; --hover:#e6d6ad; --accent:#a6442e; --accent2:#3f5263; --gold:#956322;
-    --c-lived:#a6442e; --c-visited:#3f5263;
+  [data-theme="classic"]{ /* classic - antique sepia map: stained parchment, ink coastlines, compass */
+    --ocean:#d8bf93; --ocean-hi:#e6d2a5; --land:#cbb182; --land-stroke:#473115;
+    --paper:#dcc79f; --ink:#3a2a16; --muted:#90784f; --rule:#b39a6a;
+    --field:#e3d1a9; --hover:#d5be8f; --accent:#9c4a22; --accent2:#6e4a28; --gold:#8a5f28;
+    --c-lived:#a8512a; --c-visited:#5e3c1e;
     --photo-filter:sepia(.55) contrast(1.08) brightness(1.0); --grain-opacity:.2; --route-dash:8 3 2 3; --grid:#937640;
     --font:"EB Garamond","Hoefler Text",Georgia,serif;
     --font-display:"Great Vibes","Pinyon Script",cursive; --font-hand:"Great Vibes",cursive;
@@ -81,15 +81,16 @@
   /* classic: burnt-parchment vignette (darkens only the far edges, like an aged map) */
   [data-theme="classic"] #vibe-tex{opacity:1;background:
     radial-gradient(135% 125% at 50% 46%, rgba(74,48,22,0) 60%, rgba(60,38,16,.5) 122%)}
-  /* earthy: gritty crumpled paper (raking-light turbulence) multiplied onto the surface color */
+  /* earthy: soft crumpled paper (gentler than before) multiplied onto the surface color */
   [data-theme="earthy"]{--tex-blend:multiply;--tex-size:560px 560px;
-    --tex:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='560' height='560'><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.015' numOctaves='5' seed='11' stitchTiles='stitch' result='t'/><feDiffuseLighting in='t' surfaceScale='4' diffuseConstant='1.12' lighting-color='%23ffffff'><feDistantLight azimuth='235' elevation='44'/></feDiffuseLighting></filter><rect width='100%25' height='100%25' filter='url(%23w)'/></svg>")}
-  /* classic: faint warm paper grain (kept light per feedback) */
-  [data-theme="classic"]{--tex-blend:normal;--tex-size:190px 190px;
-    --tex:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='190' height='190'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -0.55 0.42'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>")}
-  /* cute: subtle bubblegum bubbles (faint rings with a tiny highlight) */
-  [data-theme="cute"]{--tex-blend:normal;--tex-size:54px 54px;
-    --tex:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='54' height='54'><g fill='none' stroke='%23ef82bb' stroke-width='1.2' opacity='0.28'><circle cx='14' cy='15' r='6.5'/><circle cx='39' cy='38' r='4'/></g><circle cx='11.5' cy='12.5' r='1.4' fill='%23ffffff' opacity='0.5'/><circle cx='37.2' cy='36.4' r='0.9' fill='%23ffffff' opacity='0.45'/></svg>")}
+    --tex:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='560' height='560'><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.015' numOctaves='5' seed='11' stitchTiles='stitch' result='t'/><feDiffuseLighting in='t' surfaceScale='2.4' diffuseConstant='1.05' lighting-color='%23ffffff'><feDistantLight azimuth='235' elevation='58'/></feDiffuseLighting></filter><rect width='100%25' height='100%25' filter='url(%23w)'/></svg>")}
+  /* classic: crinkle-stained sepia paper - wrinkle shadows + irregular tea/coffee stains, multiplied */
+  [data-theme="classic"]{--tex-blend:multiply;--tex-size:480px 480px, 640px 640px;
+    --tex:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='480' height='480'><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='0.02 0.024' numOctaves='4' seed='6' stitchTiles='stitch' result='t'/><feDiffuseLighting in='t' surfaceScale='2.6' diffuseConstant='1.05' lighting-color='%23ffffff'><feDistantLight azimuth='225' elevation='50'/></feDiffuseLighting></filter><rect width='100%25' height='100%25' filter='url(%23w)'/></svg>"),
+      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='640' height='640'><filter id='s'><feTurbulence type='fractalNoise' baseFrequency='0.006' numOctaves='2' seed='4' stitchTiles='stitch' result='t'/><feColorMatrix in='t' type='matrix' values='0 0 0 0 0.36 0 0 0 0 0.24 0 0 0 0 0.10 0 0 0 0.85 -0.46'/></filter><rect width='100%25' height='100%25' filter='url(%23s)'/></svg>")}
+  /* cute: very subtle bubblegum bubbles (faint rings with a tiny highlight) */
+  [data-theme="cute"]{--tex-blend:normal;--tex-size:58px 58px;
+    --tex:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='58' height='58'><g fill='none' stroke='%23ef82bb' stroke-width='1.1' opacity='0.17'><circle cx='15' cy='16' r='6.5'/><circle cx='42' cy='41' r='4'/></g><circle cx='12.5' cy='13.5' r='1.3' fill='%23ffffff' opacity='0.34'/><circle cx='40.2' cy='39.4' r='0.8' fill='%23ffffff' opacity='0.3'/></svg>")}
   /* script & bubble display fonts (classic calligraphy, cute bubble) read wrong spaced + uppercase:
      give those titles natural case and a size bump. Earthy uses Cinzel, which suits Roman caps, so it
      keeps the default uppercase treatment. */
@@ -196,7 +197,7 @@
   .pick{display:flex;align-items:center;gap:9px;padding:7px 8px;border-radius:8px;cursor:pointer}
   .pick:hover{background:var(--hover)}.pick.sel{background:var(--hover);box-shadow:inset 0 0 0 1px var(--rule)}
   .pick .sw{width:16px;height:16px;border-radius:50%;box-shadow:0 0 0 1px #0002}
-  .pick .sw.wish{background:repeating-linear-gradient(45deg,var(--gold),var(--gold) 2px,#fff0 2px,#fff0 4px);border:1px dashed var(--gold)}
+  .pick .sw.wish{background:var(--gold)}
   .pick .nm{font-size:13px;flex:1}
   .yearpick{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid var(--rule)}
   .yearpick input{width:80px;border:1px solid var(--rule);background:var(--field);border-radius:6px;padding:5px 7px;font:inherit}
@@ -209,7 +210,7 @@
   .row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #00000010;cursor:pointer}
   .row:last-child{border-bottom:none}
   .row .sw{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:0 0 0 1px #0002}
-  .row .sw.wish{background:repeating-linear-gradient(45deg,var(--gold),var(--gold) 2px,#fff0 2px,#fff0 4px);border:1px dashed var(--gold)}
+  .row .sw.wish{background:var(--gold)}
   .row .nm{flex:1;font-size:15px}
   .row .nm small{display:block;font-size:11px;color:var(--muted)}
   .row .ct{font-size:13px;color:var(--muted)}
@@ -701,7 +702,7 @@
     padding:7px 12px;font-size:13px;cursor:pointer}
   .lchip.sel{box-shadow:inset 0 0 0 2px var(--accent);border-color:var(--accent)}
   .lchip .sw{width:13px;height:13px;border-radius:50%;box-shadow:0 0 0 1px #0002}
-  .lchip .sw.wish{background:repeating-linear-gradient(45deg,var(--gold),var(--gold) 2px,#fff0 2px,#fff0 4px);border:1px dashed var(--gold)}
+  .lchip .sw.wish{background:var(--gold)}
   .visit-row{border:1px solid var(--rule);border-radius:14px;padding:11px 12px 12px;margin-bottom:10px;background:color-mix(in srgb,var(--field) 55%,transparent)}
   .visit-row .lchips{margin-bottom:9px}
   .visit-row .lchip{padding:6px 11px;font-size:12.5px}
@@ -3043,11 +3044,11 @@ document.getElementById('jm-delete').onclick=()=>{
 // ---- theme / vibe picker (token-driven; scaffolding untouched) ----
 const THEME_META=[
   {id:'retro',  name:'Retro',   sw:['#f7edd6','#c43e1a','#0e7c6f','#3b2f2a']},
-  {id:'sleek',  name:'Sleek',   sw:['#0d0e11','#d8b76a','#aeb6c0','#9c3a31']},
+  {id:'sleek',  name:'Sleek',   sw:['#0d0e11','#d6b06a','#e9edf2','#272b31']},
   {id:'disco',  name:'Disco',   sw:['#1d0636','#ff2bd6','#1fe3cb','#f5e63d']},
-  {id:'earthy', name:'Earthy',  sw:['#d2dec2','#5b7a3a','#a3672f','#33442a']},
-  {id:'cute',   name:'Cute',    sw:['#ffe2ef','#f06bb0','#5fc9a3','#e8478f']},
-  {id:'classic',name:'Classic', sw:['#e5d3a8','#a6442e','#3f5263','#4d3a20']},
+  {id:'earthy', name:'Earthy',  sw:['#d2dec2','#b06a26','#6f9540','#33442a']},
+  {id:'cute',   name:'Cute',    sw:['#ffe2ef','#f06bb0','#f2c63f','#e8478f']},
+  {id:'classic',name:'Classic', sw:['#d8bf93','#a8512a','#5e3c1e','#473115']},
 ];
 function buildThemeGrid(){
   const g=document.getElementById('theme-grid'); if(!g) return;
