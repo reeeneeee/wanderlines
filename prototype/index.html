@@ -2199,11 +2199,19 @@ function exportBackup(){
   setTimeout(()=>URL.revokeObjectURL(url),2000);
   const n=Object.keys(state.marks).length; backupMsg('Backup saved. '+n+' countries, '+state.journeys.length+' journeys.');
 }
-function applyBackup(obj){
+async function applyBackup(obj){
   const d=(obj&&obj.data)?obj.data:obj; // tolerate a raw state object too
   if(!d||typeof d!=='object'||(!d.marks&&!d.journeys&&!d.places)) throw new Error('not a Wanderlines backup');
-  try{ localStorage.setItem('wl_data', JSON.stringify({ marks:d.marks||{}, regionMarks:d.regionMarks||{}, places:d.places||{},
-    lists:d.lists, journeys:Array.isArray(d.journeys)?d.journeys:[], year:d.year, extraUnesco:d.extraUnesco||[], extraParks:d.extraParks||[], airports:d.airports||{} })); }catch(e){}
+  // MERGE the backup into whatever this device already has - never drop current data.
+  const merged={ _ts:new Date().toISOString(),
+    marks:{...(state.marks||{}), ...(d.marks||{})}, regionMarks:_mergeRegion(state.regionMarks, d.regionMarks),
+    places:{...(state.places||{}), ...(d.places||{})}, airports:{...(state.airports||{}), ...(d.airports||{})},
+    lists:(state.lists&&state.lists.length)?state.lists:(d.lists||state.lists), journeys:_mergeJourneys(state.journeys, d.journeys),
+    year:d.year||state.year, extraUnesco:_unionPairs(state.extraUnesco, d.extraUnesco), extraParks:_unionPairs(state.extraParks, d.extraParks) };
+  // compress any oversized (e.g. full-res) photos so the import fits local storage and is never stripped
+  for(const j of merged.journeys){ for(const e of (j.journal||[])){ if(e&&typeof e.photo==='string'&&e.photo.length>180000){ try{ const small=await compressDataURL(e.photo); if(small&&small.length<e.photo.length) e.photo=small; }catch(_){} } } }
+  try{ localStorage.setItem('wl_data', JSON.stringify(merged)); }
+  catch(_){ try{ const slim={...merged, journeys:merged.journeys.map(j=>({...j, journal:(j.journal||[]).map(en=>en&&en.photo?{...en,photo:null}:en)}))}; localStorage.setItem('wl_data',JSON.stringify(slim)); }catch(__){} }
   if(obj&&obj.prefs){ try{ if(obj.prefs.theme) localStorage.setItem('wl_theme',obj.prefs.theme);
     if(obj.prefs.units) localStorage.setItem('wl_units',obj.prefs.units);
     localStorage.setItem('wl_native',obj.prefs.native?'1':'0'); }catch(e){} }
@@ -2216,9 +2224,9 @@ function applyBackup(obj){
   if(inp) inp.onchange=()=>{ const f=inp.files&&inp.files[0]; if(!f) return;
     const r=new FileReader();
     r.onload=()=>{ let obj; try{ obj=JSON.parse(r.result); }catch(e){ backupMsg('That file isn’t valid JSON.',false); inp.value=''; return; }
-      const have=Object.keys(state.marks).length;
-      if(have && !confirm('Restoring this backup will replace your current map ('+have+' countries logged). Continue?')){ inp.value=''; return; }
-      try{ applyBackup(obj); }catch(e){ backupMsg('Couldn’t read that backup. '+e.message+'.',false); inp.value=''; }
+      if(!confirm('Merge this backup into your map? It adds its journeys and countries to what you already have (nothing is removed).')){ inp.value=''; return; }
+      backupMsg('Importing…');
+      Promise.resolve().then(()=>applyBackup(obj)).catch(e=>{ backupMsg('Couldn’t read that backup. '+(e&&e.message||e)+'.',false); inp.value=''; });
     };
     r.readAsText(f); };
 })();
