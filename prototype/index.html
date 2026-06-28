@@ -2203,20 +2203,34 @@ function exportBackup(){
 async function applyBackup(obj){
   const d=(obj&&obj.data)?obj.data:obj; // tolerate a raw state object too
   if(!d||typeof d!=='object'||(!d.marks&&!d.journeys&&!d.places)) throw new Error('not a Wanderlines backup');
-  // MERGE the backup into whatever this device already has - never drop current data.
-  const merged={ _ts:new Date().toISOString(),
-    marks:{...(state.marks||{}), ...(d.marks||{})}, regionMarks:_mergeRegion(state.regionMarks, d.regionMarks),
-    places:{...(state.places||{}), ...(d.places||{})}, airports:{...(state.airports||{}), ...(d.airports||{})},
-    lists:(state.lists&&state.lists.length)?state.lists:(d.lists||state.lists), journeys:_mergeJourneys(state.journeys, d.journeys),
-    year:d.year||state.year, extraUnesco:_unionPairs(state.extraUnesco, d.extraUnesco), extraParks:_unionPairs(state.extraParks, d.extraParks) };
+  // MERGE the backup straight into the LIVE app state - and DON'T reload. A reload would re-run the
+  // cloud sync, which could pull a stale/empty cloud copy over the freshly-imported data. By updating
+  // memory + saving + pushing to the cloud right here, the import becomes the authoritative copy.
+  state.marks={...(state.marks||{}), ...(d.marks||{})};
+  state.regionMarks=_mergeRegion(state.regionMarks, d.regionMarks);
+  state.places={...(state.places||{}), ...(d.places||{})};
+  state.airports={...(state.airports||{}), ...(d.airports||{})};
+  if(d.lists && d.lists.length && !(state.lists&&state.lists.length)) state.lists=d.lists;
+  state.journeys=_mergeJourneys(state.journeys, d.journeys);
+  if(d.year) state.year=d.year;
+  state.extraUnesco=_unionPairs(state.extraUnesco, d.extraUnesco);
+  state.extraUnesco.forEach(e=>{ if(!LANDMARKS.unesco.some(([n])=>n===e[0])) LANDMARKS.unesco.push(e); });
+  state.extraParks=_unionPairs(state.extraParks, d.extraParks);
+  state.extraParks.forEach(e=>{ if(!LANDMARKS.parks.some(([n])=>n===e[0])) LANDMARKS.parks.push(e); });
   // compress any oversized (e.g. full-res) photos so the import fits local storage and is never stripped
-  for(const j of merged.journeys){ for(const e of (j.journal||[])){ if(e&&typeof e.photo==='string'&&e.photo.length>180000){ try{ const small=await compressDataURL(e.photo); if(small&&small.length<e.photo.length) e.photo=small; }catch(_){} } } }
-  try{ localStorage.setItem('wl_data', JSON.stringify(merged)); }
-  catch(_){ try{ const slim={...merged, journeys:merged.journeys.map(j=>({...j, journal:(j.journal||[]).map(en=>en&&en.photo?{...en,photo:null}:en)}))}; localStorage.setItem('wl_data',JSON.stringify(slim)); }catch(__){} }
-  if(obj&&obj.prefs){ try{ if(obj.prefs.theme) localStorage.setItem('wl_theme',obj.prefs.theme);
-    if(obj.prefs.units) localStorage.setItem('wl_units',obj.prefs.units);
-    localStorage.setItem('wl_native',obj.prefs.native?'1':'0'); }catch(e){} }
-  location.reload();
+  for(const j of state.journeys){ for(const e of (j.journal||[])){ if(e&&typeof e.photo==='string'&&e.photo.length>180000){ try{ const small=await compressDataURL(e.photo); if(small&&small.length<e.photo.length) e.photo=small; }catch(_){} } } }
+  if(obj&&obj.prefs){ try{ if(obj.prefs.theme) applyTheme(obj.prefs.theme,true); if(obj.prefs.units) applyUnits(obj.prefs.units,true);
+    if('native' in obj.prefs){ state.nativeNames=!!obj.prefs.native; localStorage.setItem('wl_native',obj.prefs.native?'1':'0'); } }catch(e){} }
+  migrateStopNotesToJournal();        // fold any legacy per-stop notes into the journal
+  backfillJourneyLandmarks();         // surface park/UNESCO journey stops in their lists
+  saveState();                        // persist locally + schedule the cloud sync
+  pushCloud();                        // push immediately so the cloud reflects the import
+  // re-render whatever is on screen (no reload)
+  try{ if(typeof wsel!=='undefined' && wsel) paintWorld(); }catch(_){}
+  try{ renderJourneys(); }catch(_){}
+  try{ renderAccount(); }catch(_){}
+  try{ renderLists&&renderLists(); renderContinents&&renderContinents(); }catch(_){}
+  backupMsg('Imported! '+state.journeys.length+' journeys and '+Object.keys(state.marks).length+' countries are now on your map.');
 }
 (function(){
   const eb=document.getElementById('export-btn'), ib=document.getElementById('import-btn'), inp=document.getElementById('import-file');
@@ -2227,7 +2241,7 @@ async function applyBackup(obj){
     r.onload=()=>{ let obj; try{ obj=JSON.parse(r.result); }catch(e){ backupMsg('That file isn’t valid JSON.',false); inp.value=''; return; }
       if(!confirm('Merge this backup into your map? It adds its journeys and countries to what you already have (nothing is removed).')){ inp.value=''; return; }
       backupMsg('Importing…');
-      Promise.resolve().then(()=>applyBackup(obj)).catch(e=>{ backupMsg('Couldn’t read that backup. '+(e&&e.message||e)+'.',false); inp.value=''; });
+      Promise.resolve().then(()=>applyBackup(obj)).then(()=>{ inp.value=''; }).catch(e=>{ backupMsg('Couldn’t read that backup. '+(e&&e.message||e)+'.',false); inp.value=''; });
     };
     r.readAsText(f); };
 })();
