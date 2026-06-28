@@ -2227,6 +2227,7 @@ async function applyBackup(obj){
   for(const j of state.journeys){ for(const e of (j.journal||[])){ if(e&&typeof e.photo==='string'&&e.photo.length>180000){ try{ const small=await compressDataURL(e.photo); if(small&&small.length<e.photo.length) e.photo=small; }catch(_){} } } }
   if(obj&&obj.prefs){ try{ if(obj.prefs.theme) applyTheme(obj.prefs.theme,true); if(obj.prefs.units) applyUnits(obj.prefs.units,true);
     if('native' in obj.prefs){ state.nativeNames=!!obj.prefs.native; localStorage.setItem('wl_native',obj.prefs.native?'1':'0'); } }catch(e){} }
+  dropExampleIfReal();                // the imported journeys are real -> remove the Example
   migrateStopNotesToJournal();        // fold any legacy per-stop notes into the journal
   backfillJourneyLandmarks();         // surface park/UNESCO journey stops in their lists
   saveState();                        // persist locally + schedule the cloud sync
@@ -3431,6 +3432,10 @@ function _mergeJourneys(local,cloud){ local=Array.isArray(local)?local:[]; cloud
   if(out.some(j=>j&&!seed.has(j.id))) out=out.filter(j=>j&&!seed.has(j.id));   // drop the example once real journeys exist
   return out;
 }
+// Remove the seeded Example Journey whenever the user has any real journey of their own.
+function dropExampleIfReal(){ if(!Array.isArray(state.journeys)) return false; const seed=_seedJourneyIds();
+  if(state.journeys.some(j=>j&&!seed.has(j.id)) && state.journeys.some(j=>j&&seed.has(j.id))){
+    state.journeys=state.journeys.filter(j=>j&&!seed.has(j.id)); return true; } return false; }
 // Does the device hold REAL user data (anything beyond a brand-new seeded account)?
 function localHasRealData(){ const seed=_seedJourneyIds();
   return (state.marks&&Object.keys(state.marks).length>0) || (state.places&&Object.keys(state.places).length>0)
@@ -3462,6 +3467,7 @@ function hydrateFromCloud(obj){
 }
 // A brand-new account starts with a clean map (no demo countries), but keeps the one example journey.
 function freshStartState(){
+  if(localHasRealData()) return;   // SAFETY: never wipe a device that already holds real data
   state.marks={}; state.regionMarks={}; state.places={}; state.airports={}; state.extraUnesco=[]; state.extraParks=[];
   state.journeys = JSON.parse(JSON.stringify(SEED_JOURNEYS));
   state.lists = JSON.parse(JSON.stringify(DEFAULT_LISTS));
@@ -3573,7 +3579,7 @@ Object.keys(VIBE_DISPLAY).forEach(vibe=>{
   }catch(_){}
 });
 // app version (build.mjs injects the real number) so you can confirm you're on the latest build
-const APP_VER='v57';
+const APP_VER='v58';
 try{ const vl=document.getElementById('app-ver-line'); if(vl) vl.textContent='Wanderlines '+(APP_VER.indexOf('APP_VER')>=0?'(dev)':APP_VER); }catch(_){}
 // paint our own line-icons into every static [data-icon] slot (no emoji)
 document.querySelectorAll('[data-icon]').forEach(el=>{ el.innerHTML=ICON(el.dataset.icon, +(el.dataset.isz)||18); });
@@ -3625,6 +3631,7 @@ try{ const bak=JSON.parse(localStorage.getItem('wl_jbak')||'null');
     const bakReal=bak.journeys.some(j=>j&&!seed.has(j.id));
     if(bakReal && !curReal){ state.journeys=_mergeJourneys(state.journeys, bak.journeys); }
   } }catch(_){}
+dropExampleIfReal();           // never show the Example Journey alongside real ones
 migrateStopNotesToJournal();   // fold any legacy per-stop notes into the journal on local load
 backfillJourneyLandmarks();    // surface park/UNESCO journey stops in their lists
 setTimeout(shrinkExistingPhotos,1200);   // quietly shrink any oversized photos saved before compression existed
@@ -3696,7 +3703,15 @@ maybeShowShared();
 })();
 </script>
 <script>
-if('serviceWorker' in navigator){ window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+if('serviceWorker' in navigator){
+  // auto-reload once when a new version takes control, so an installed PWA never gets stuck on stale code
+  var __swReloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){ if(!__swReloaded){ __swReloaded=true; location.reload(); } });
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').then(function(reg){ try{ reg.update(); }catch(e){}
+      setInterval(function(){ try{ reg.update(); }catch(e){} }, 60000); }).catch(function(){});
+  });
+}
 </script>
 </body>
 </html>

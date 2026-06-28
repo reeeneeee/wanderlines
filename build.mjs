@@ -20,7 +20,15 @@ const HEAD = `<title>Wanderlines</title>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />`;
 
 const SW_REG = `<script>
-if('serviceWorker' in navigator){ window.addEventListener('load',function(){ navigator.serviceWorker.register('sw.js').catch(function(){}); }); }
+if('serviceWorker' in navigator){
+  // auto-reload once when a new version takes control, so an installed PWA never gets stuck on stale code
+  var __swReloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange',function(){ if(!__swReloaded){ __swReloaded=true; location.reload(); } });
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').then(function(reg){ try{ reg.update(); }catch(e){}
+      setInterval(function(){ try{ reg.update(); }catch(e){} }, 60000); }).catch(function(){});
+  });
+}
 </script>
 </body>`;
 
