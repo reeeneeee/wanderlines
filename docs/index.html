@@ -3478,8 +3478,12 @@ function freshStartState(){
 async function pushCloud(force){
   if(!sb||!cloudUser) return;
   if(!force && !localHasRealData() && syncedRev===0) return;
-  const nextRev=(syncedRev||0)+1;
+  // Time-based revision (epoch seconds): naturally monotonic and comparable across devices, and always
+  // far higher than an old client's unversioned write (rev 0), so a stale device's clobber reads as a
+  // regression the new code will heal rather than adopt.
+  const nextRev=Math.max((syncedRev||0)+1, Math.floor(Date.now()/1000));
   const doc=fullBackup(); doc.rev=nextRev; const ts=new Date().toISOString(); doc._ts=ts;
+  try{ doc.appVer=(typeof APP_VER!=='undefined'?APP_VER:''); }catch(_){}   // stamp which build wrote this
   try{ const {error}=await sb.from('user_data').upsert({ user_id:cloudUser.id, data:doc, updated_at:ts },{ onConflict:'user_id' });
     if(!error) setSynced(nextRev);
   }catch(e){}
@@ -3502,6 +3506,13 @@ async function loadCloudInto(){
     // No usable cloud row. If THIS device holds real data, make it the account's truth; otherwise new account.
     if(localHasRealData()){ await pushCloud(true); return 'pushed-local'; }
     return 'empty';
+  }
+  // REGRESSION GUARD: if we've already synced a HIGHER revision than the cloud now shows, the cloud went
+  // backwards - almost always an OLD cached client overwrote it with a stale/no-rev doc. Never adopt that
+  // regression. If this device still holds real data, re-assert it (heals the cloud); else keep local.
+  if(syncedRev>0 && cloudRev<syncedRev){
+    if(localHasRealData()){ await pushCloud(true); return 'pushed-local'; }
+    return 'kept-local';
   }
   if(!localDirty){
     // No unsynced local edits. The cloud is normally authoritative -> replace local wholesale.
@@ -3601,7 +3612,7 @@ Object.keys(VIBE_DISPLAY).forEach(vibe=>{
   }catch(_){}
 });
 // app version (build.mjs injects the real number) so you can confirm you're on the latest build
-const APP_VER='v62';
+const APP_VER='v63';
 try{ const vl=document.getElementById('app-ver-line'); if(vl) vl.textContent='Wanderlines '+(APP_VER.indexOf('APP_VER')>=0?'(dev)':APP_VER); }catch(_){}
 // paint our own line-icons into every static [data-icon] slot (no emoji)
 document.querySelectorAll('[data-icon]').forEach(el=>{ el.innerHTML=ICON(el.dataset.icon, +(el.dataset.isz)||18); });
