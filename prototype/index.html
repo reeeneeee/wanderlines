@@ -179,6 +179,8 @@
   .chip.wishchip{border-style:dashed;border-color:var(--gold);color:var(--muted)}
   .chip .chipx{cursor:pointer;color:var(--muted);font-weight:700;margin-left:3px;opacity:.7}
   .chip .chipx:hover{opacity:1;color:var(--accent)}
+  .chip .lmtag{display:inline-flex;vertical-align:middle;margin-right:4px}
+  .chip .lmtag svg{display:block}
   .field{margin-bottom:12px}
   .field label{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
   .field input{width:100%;border:1px solid var(--rule);background:var(--field);border-radius:8px;padding:10px 12px;font:inherit}
@@ -784,7 +786,7 @@
         <p class="lead">Airports you've flown through. Searchable, and kept off the map.</p>
         <div class="card" id="airports-card"></div>
         <h2 style="margin-top:24px">Landmarks</h2>
-        <p class="lead">National Parks &amp; UNESCO sites you've logged on the map.</p>
+        <p class="lead">National Parks and UNESCO World Heritage sites. Search to add, or tap a pin on the World Map.</p>
         <div id="landmark-lists"></div>
         <h2 style="margin-top:24px">By Year</h2>
         <p class="lead">Your visited countries, grouped automatically.</p>
@@ -1505,9 +1507,15 @@ function loadUnescoFull(cb){
   if(UNESCO_FULL){ cb&&cb(); return; }
   if(cb) unescoCbs.push(cb);
   if(unescoLoading) return; unescoLoading=true;
-  fetch('https://cdn.jsdelivr.net/gh/Igor-Vladyka/realplanet@master/data/places/real.planet.unesco.json')
-    .then(r=>r.json()).then(d=>{ UNESCO_FULL=d.filter(x=>x.latitude&&x.longitude).map(x=>({name:x.name_en,country:x.states_name_en||'',lon:+x.longitude,lat:+x.latitude}));
-      if(searchIn.value.trim()) runSearch(); unescoCbs.forEach(f=>{try{f();}catch(e){}}); unescoCbs=[]; }).catch(()=>{ unescoLoading=false; });
+  const done=()=>{ if(searchIn.value.trim()) runSearch(); unescoCbs.forEach(f=>{try{f();}catch(e){}}); unescoCbs=[]; };
+  // our hosted, current list (~1,250 sites incl. recent inscriptions), {name,country,lon,lat}
+  fetch('https://cdn.jsdelivr.net/gh/reeeneeee/wanderlines@master/docs/data/unesco.json')
+    .then(r=>{ if(!r.ok) throw 0; return r.json(); })
+    .then(d=>{ UNESCO_FULL=d.map(s=>({name:s.name,country:s.country||'',lon:s.lon,lat:s.lat})); done(); })
+    .catch(()=>{ // fall back to the older community list so search still works if the CDN lags
+      fetch('https://cdn.jsdelivr.net/gh/Igor-Vladyka/realplanet@master/data/places/real.planet.unesco.json')
+        .then(r=>r.json()).then(d=>{ UNESCO_FULL=d.filter(x=>x.latitude&&x.longitude).map(x=>({name:x.name_en,country:x.states_name_en||'',lon:+x.longitude,lat:+x.latitude})); done(); })
+        .catch(()=>{ unescoLoading=false; }); });
 }
 // US state for each National Park (derived once from the US states map), so parks are searchable by state.
 let PARK_STATES=null, parkStatesLoading=false, parkStatesCbs=[];
@@ -1822,52 +1830,61 @@ function renderLists(){
     box.appendChild(row);
   });
 }
-function renderLandmarkLists(){
-  const box=document.getElementById('landmark-lists'); box.innerHTML='';
-  [['parks','National Parks','park','#2f7d4f','Search a park, or a state / country…'],
-   ['unesco','UNESCO World Heritage','unesco','#6c5ce0','Search a site, or a country…']].forEach(cfg=>box.appendChild(buildLandmarkCard(cfg)));
+// One combined "Landmarks" section covering National Parks + UNESCO sites. Underlying data stays
+// keyed parks:/unesco: (so map layers, badges and everything already logged are preserved); only the
+// Lists display is unified. A site that's both (e.g. Yellowstone) is searchable as both types.
+const LM_TYPE={parks:{ic:'park',label:'National Park',col:'#2f7d4f'}, unesco:{ic:'unesco',label:'UNESCO',col:'#6c5ce0'}};
+function landmarkIndexAll(){ return landmarkIndex('parks').concat(landmarkIndex('unesco')); }
+function landmarkSearchAll(q){ const nq=normSearch(q); if(!nq) return [];
+  const hits=landmarkIndexAll().map(p=>{ const nameHit=normSearch(p.name).includes(nq);
+      const placeHit=(p.country&&normSearch(p.country).includes(nq))||(p.state&&normSearch(p.state).includes(nq));
+      return (nameHit||placeHit)?{p,rank:(normSearch(p.name).startsWith(nq)?0:(nameHit?1:2))}:null; }).filter(Boolean);
+  hits.sort((a,b)=> a.rank-b.rank || a.p.name.localeCompare(b.p.name));
+  return hits.slice(0,120).map(h=>h.p);
 }
-function buildLandmarkCard([layer,title,ic,col,ph]){
+function renderLandmarkLists(){
+  const box=document.getElementById('landmark-lists'); box.innerHTML=''; box.appendChild(buildLandmarkCard());
+}
+function buildLandmarkCard(){
   const card=document.createElement('div'); card.className='card';
   card.innerHTML=`<div class="row" style="cursor:default">
-      <span class="sw" style="background:${col};display:flex;align-items:center;justify-content:center;color:#fff">${ICON(ic,12)}</span>
-      <div class="nm">${title}<small>search to add one, or tap a pin on the World Map</small></div>
+      <span class="sw" style="background:linear-gradient(135deg,#2f7d4f 0 50%,#6c5ce0 50% 100%);display:flex;align-items:center;justify-content:center;color:#fff">${ICON('pin',12)}</span>
+      <div class="nm">Landmarks<small>National Parks &amp; UNESCO sites · search to add</small></div>
       <div class="ct" data-ct></div></div>
     <div class="searchbox" style="position:relative;margin-top:10px"><span class="si lm-si"></span>
-      <input class="lm-search" placeholder="${ph}" autocomplete="off"/><div class="sres lm-res"></div></div>
+      <input class="lm-search" placeholder="Search a park, UNESCO site, country or state…" autocomplete="off"/><div class="sres lm-res"></div></div>
     <div class="lm-chips" style="margin-top:10px"></div>`;
   card.querySelector('.lm-si').innerHTML=ICON('search',15);
   const inp=card.querySelector('.lm-search'), res=card.querySelector('.lm-res'), chips=card.querySelector('.lm-chips'), ct=card.querySelector('[data-ct]');
   function refresh(){
-    const entries=Object.entries(state.places).filter(([k])=>k.startsWith(layer+':')).map(([k,v])=>({name:k.slice(layer.length+1),...v})).sort((a,b)=>a.name.localeCompare(b.name));
+    const entries=Object.entries(state.places).filter(([k])=>k.startsWith('parks:')||k.startsWith('unesco:'))
+      .map(([k,v])=>{ const layer=k.split(':')[0]; return {layer,name:k.slice(layer.length+1),...v}; }).sort((a,b)=>a.name.localeCompare(b.name));
     const visited=entries.filter(e=>e.listId==='visited').length, wish=entries.filter(e=>e.listId==='wishlist').length;
     ct.textContent=`${visited} visited${wish?` · ${wish} wish`:''}`;
-    chips.innerHTML = entries.length ? '<div class="chips">'+entries.map(e=>`<span class="chip${e.listId==='wishlist'?' wishchip':''}" data-nm="${e.name.replace(/"/g,'&quot;')}">${e.name}${e.listId==='visited'&&e.year?' · '+e.year:''} <span class="chipx">✕</span></span>`).join('')+'</div>'
-      : `<div class="lead" style="margin:4px 0 0;font-size:12px">None logged yet. Search above to add one.</div>`;
-    chips.querySelectorAll('.chip').forEach(c=>{ const x=c.querySelector('.chipx'); if(x) x.onclick=()=>{ delete state.places[pkey(layer,c.dataset.nm)]; saveState(); refresh(); }; });
+    chips.innerHTML = entries.length ? '<div class="chips">'+entries.map(e=>{ const tm=LM_TYPE[e.layer]||LM_TYPE.unesco;
+        return `<span class="chip${e.listId==='wishlist'?' wishchip':''}" data-layer="${e.layer}" data-nm="${e.name.replace(/"/g,'&quot;')}"><span class="lmtag" style="color:${tm.col}">${ICON(tm.ic,11)}</span>${e.name}${e.listId==='visited'&&e.year?' · '+e.year:''} <span class="chipx">✕</span></span>`; }).join('')+'</div>'
+      : `<div class="lead" style="margin:4px 0 0;font-size:12px">None logged yet. Search above to add national parks and UNESCO sites.</div>`;
+    chips.querySelectorAll('.chip').forEach(c=>{ const x=c.querySelector('.chipx'); if(x) x.onclick=()=>{ delete state.places[pkey(c.dataset.layer,c.dataset.nm)]; saveState(); refresh(); }; });
   }
   function doSearch(){ const q=inp.value.trim();
     if(!q){ res.classList.remove('open'); return; }
-    const loaded = layer==='parks' ? PARK_STATES!==null : UNESCO_FULL!==null;
-    const hits=landmarkSearch(layer,q);
-    res.innerHTML = hits.length ? hits.map((h,i)=>{ const logged=!!state.places[pkey(layer,h.name)], sub=[h.state,h.country].filter(Boolean).join(', ');
-        return `<div class="sr" data-i="${i}"><span class="srl">${ICON(ic,14)} ${h.name}${sub?` <small>${sub}</small>`:''}</span>${logged?'<span class="rchip" style="pointer-events:none">✓ Logged</span>':'<span class="rchip">Add ›</span>'}</div>`; }).join('')
+    const hits=landmarkSearchAll(q), loaded=UNESCO_FULL!==null;
+    res.innerHTML = hits.length ? hits.map((h,i)=>{ const tm=LM_TYPE[h.layer], logged=!!state.places[pkey(h.layer,h.name)];
+        const sub=[tm.label, h.state, h.country].filter(Boolean).join(' · ');
+        return `<div class="sr" data-i="${i}"><span class="srl"><span style="color:${tm.col}">${ICON(tm.ic,14)}</span> ${h.name}${sub?` <small>${sub}</small>`:''}</span>${logged?'<span class="rchip" style="pointer-events:none">✓ Logged</span>':'<span class="rchip">Add ›</span>'}</div>`; }).join('')
       : (loaded?'<div class="none">Nothing found</div>':'<div class="none">Loading…</div>');
     res.classList.add('open');
     res.querySelectorAll('.sr').forEach((el,i)=>el.onclick=()=>{ const h=hits[i]; if(!h) return;
-      if(state.places[pkey(layer,h.name)]) return;   // already logged
-      logPlace(layer,h.name,h.lon,h.lat,state.year); saveState(); if(typeof renderMarks==='function') renderMarks();
+      if(state.places[pkey(h.layer,h.name)]) return;   // already logged
+      logPlace(h.layer,h.name,h.lon,h.lat,state.year); saveState(); if(typeof renderMarks==='function') renderMarks();
       refresh();
-      // keep the dropdown open + query intact so several sites can be logged from one search;
-      // just mark this row as logged. The dropdown closes when you click away (blur handler below).
-      const chip=el.querySelector('.rchip'); if(chip){ chip.textContent='✓ Logged'; chip.style.pointerEvents='none'; }
+      const chip=el.querySelector('.rchip'); if(chip){ chip.textContent='✓ Logged'; chip.style.pointerEvents='none'; }   // keep dropdown open to log more
       inp.focus();
     });
   }
-  inp.onfocus=()=>{ (layer==='parks'?loadParkStates:loadUnescoFull)(()=>{ if(inp.value.trim()) doSearch(); }); };
+  inp.onfocus=()=>{ loadParkStates(()=>{ if(inp.value.trim()) doSearch(); }); loadUnescoFull(()=>{ if(inp.value.trim()) doSearch(); }); };
   inp.oninput=doSearch;
-  // close the results only when focus truly leaves the search (clicking a result refocuses the input)
-  inp.onblur=()=>{ setTimeout(()=>{ if(document.activeElement!==inp) res.classList.remove('open'); },180); };
+  inp.onblur=()=>{ setTimeout(()=>{ if(document.activeElement!==inp) res.classList.remove('open'); },180); };   // close only when focus truly leaves
   refresh();
   return card;
 }
