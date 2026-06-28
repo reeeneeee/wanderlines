@@ -73,13 +73,32 @@
   /* Vibe textures are UNDERLAYS: each surface (body, cards, panels) carries the texture as its own
      background via --tex, so content/text sit cleanly on top. #vibe-tex is now only the sleek vignette. */
   #vibe-tex{position:fixed;inset:0;pointer-events:none;z-index:5;opacity:0}
-  /* agent: tactical screen - a subtle white glow from the center + deep midnight vignette at the edges */
+  /* Each vibe gets an atmospheric light pass (a glow lit from within + a depth vignette). */
+  /* agent: white glow from the center + deep midnight vignette */
   [data-theme="sleek"] #vibe-tex{opacity:1;background:
-    radial-gradient(62% 48% at 50% 46%, rgba(255,255,255,.13), rgba(255,255,255,.04) 45%, rgba(255,255,255,0) 72%),
+    radial-gradient(62% 48% at 50% 46%, rgba(255,255,255,.2), rgba(255,255,255,.07) 44%, rgba(255,255,255,0) 72%),
     radial-gradient(150% 140% at 50% 56%, rgba(3,9,20,0) 40%, rgba(3,9,20,.95) 120%)}
-  /* classic: burnt-parchment vignette (darkens only the far edges, like an aged map) */
+  /* classic: warm parchment glow + burnt edges */
   [data-theme="classic"] #vibe-tex{opacity:1;background:
-    radial-gradient(135% 125% at 50% 46%, rgba(74,48,22,0) 60%, rgba(60,38,16,.5) 122%)}
+    radial-gradient(70% 52% at 50% 42%, rgba(255,244,214,.22), rgba(255,244,214,0) 64%),
+    radial-gradient(135% 125% at 50% 46%, rgba(74,48,22,0) 58%, rgba(58,36,14,.52) 122%)}
+  /* retro: sunny cream highlight + warm vintage-poster vignette */
+  [data-theme="retro"] #vibe-tex{opacity:1;background:
+    radial-gradient(72% 54% at 50% 30%, rgba(255,243,210,.32), rgba(255,243,210,0) 58%),
+    radial-gradient(150% 132% at 50% 52%, rgba(120,68,18,0) 60%, rgba(120,68,18,.2) 122%)}
+  /* disco: neon magenta core + cyan flare + dark club vignette */
+  [data-theme="disco"] #vibe-tex{opacity:1;mix-blend-mode:screen;background:
+    radial-gradient(64% 50% at 50% 42%, rgba(255,43,214,.26), rgba(255,43,214,0) 62%),
+    radial-gradient(80% 60% at 16% 86%, rgba(31,227,203,.22), rgba(31,227,203,0) 56%),
+    radial-gradient(70% 55% at 86% 16%, rgba(245,230,61,.14), rgba(245,230,61,0) 55%)}
+  /* earthy: soft daylight glow + gentle leaf-shadow vignette */
+  [data-theme="earthy"] #vibe-tex{opacity:1;background:
+    radial-gradient(74% 56% at 50% 30%, rgba(255,251,228,.26), rgba(255,251,228,0) 58%),
+    radial-gradient(150% 130% at 50% 54%, rgba(40,56,30,0) 60%, rgba(40,56,30,.2) 122%)}
+  /* cute: glossy candy shine up top + soft pink vignette */
+  [data-theme="cute"] #vibe-tex{opacity:1;background:
+    radial-gradient(58% 34% at 50% 12%, rgba(255,255,255,.5), rgba(255,255,255,0) 62%),
+    radial-gradient(150% 132% at 50% 60%, rgba(214,82,150,0) 60%, rgba(214,82,150,.14) 122%)}
   /* earthy: soft crumpled paper (gentler than before) multiplied onto the surface color */
   [data-theme="earthy"]{--tex-blend:multiply;--tex-size:560px 560px;
     --tex:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='560' height='560'><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='0.012 0.015' numOctaves='5' seed='11' stitchTiles='stitch' result='t'/><feDiffuseLighting in='t' surfaceScale='2.4' diffuseConstant='1.05' lighting-color='%23ffffff'><feDistantLight azimuth='235' elevation='58'/></feDiffuseLighting></filter><rect width='100%25' height='100%25' filter='url(%23w)'/></svg>")}
@@ -162,6 +181,11 @@
   #map-compass svg{width:100%;height:100%;display:block}
   [data-theme="classic"] #map-compass{display:block}
   @media (max-width:480px){ #map-compass{width:78px;height:78px;bottom:90px} }
+  /* classic decorative sailing ship adrift on the ocean */
+  #map-ship{position:absolute;display:none;width:74px;height:60px;right:9%;top:43%;color:var(--land-stroke);opacity:.3;pointer-events:none;z-index:4;transform:rotate(-3deg)}
+  #map-ship svg{width:100%;height:100%;display:block}
+  [data-theme="classic"] #map-ship{display:block}
+  @media (max-width:480px){ #map-ship{width:60px;height:48px;right:6%} }
   /* agent HUD viewfinder: corner brackets + a small classified-style tag framing the map */
   #hud-frame{position:absolute;inset:58px 12px 78px;pointer-events:none;z-index:4;display:none}
   [data-theme="sleek"] #hud-frame{display:block}
@@ -768,6 +792,12 @@
         <g fill="currentColor"><path d="M60 7 L65 60 L60 60 Z"/><path d="M113 60 L60 65 L60 60 Z"/><path d="M60 113 L55 60 L60 60 Z"/><path d="M7 60 L60 55 L60 60 Z"/></g>
         <g fill="currentColor" opacity=".5"><path d="M60 7 L55 60 L60 60 Z"/><path d="M113 60 L60 55 L60 60 Z"/><path d="M60 113 L65 60 L60 60 Z"/><path d="M7 60 L60 65 L60 60 Z"/></g>
       </svg></div>
+      <div id="map-ship" aria-hidden="true"><svg viewBox="0 0 120 96"><g fill="currentColor">
+        <path d="M22 60 L98 60 L89 74 Q60 80 31 74 Z"/>
+        <rect x="47" y="22" width="2.4" height="38"/><rect x="72" y="14" width="2.4" height="46"/>
+        <path d="M48 26 C66 30 66 46 48 52 Z"/><path d="M48 26 C32 30 32 46 48 52 Z" opacity=".6"/>
+        <path d="M73 18 C92 24 92 46 73 54 Z"/><path d="M73 18 C55 24 55 46 73 54 Z" opacity=".6"/>
+        <path d="M73 12 L86 15.5 L73 19 Z"/></g></svg></div>
       <div id="hud-frame" aria-hidden="true"><i></i><i></i><i></i><i></i><span class="hud-tag">◦ WANDERLINES // FIELD MAP</span></div>
       <div class="mapctl">
         <div class="searchbox">
