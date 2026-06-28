@@ -1,0 +1,659 @@
+{
+  "app": "wanderlines",
+  "version": 1,
+  "exportedAt": "2026-06-28T20:21:00.901Z",
+  "prefs": {
+    "theme": "retro",
+    "units": "mi",
+    "native": 0
+  },
+  "data": {
+    "marks": {
+      "124": {
+        "year": 2026,
+        "notes": "",
+        "listId": "wishlist"
+      },
+      "156": {
+        "year": 2025,
+        "notes": "10-day spring break trip with Ziyan; stayed with her parents.",
+        "listId": "visited",
+        "visits": [
+          {
+            "year": 2025,
+            "month": 3,
+            "listId": "visited"
+          }
+        ]
+      },
+      "203": {
+        "year": 2018,
+        "notes": "Went with Grandma Dianna and Grandpa Michael to see family and visit the places where Grandma Sasha grew up.",
+        "listId": "visited",
+        "visits": [
+          {
+            "year": 2018,
+            "month": 7,
+            "listId": "visited"
+          }
+        ]
+      },
+      "214": {
+        "year": 2026,
+        "notes": "Filter of Hope Missions Trip with Renew and Rutgers (first missions trip!)",
+        "listId": "visited",
+        "visits": [
+          {
+            "year": 2026,
+            "month": 3,
+            "listId": "visited"
+          }
+        ]
+      },
+      "250": {
+        "year": 2026,
+        "notes": "",
+        "listId": "wishlist"
+      },
+      "276": {
+        "year": 2018,
+        "notes": "Went with Grandma Dianna and Grandpa Michael to see family.",
+        "listId": "visited",
+        "visits": [
+          {
+            "year": 2018,
+            "month": 7,
+            "listId": "visited"
+          }
+        ]
+      },
+      "300": {
+        "year": 2024,
+        "notes": "Took a 3-week screenwriting class with NYU, then did 5 days solo in Corfu.",
+        "listId": "visited",
+        "visits": [
+          {
+            "year": 2024,
+            "month": 5,
+            "listId": "visited"
+          }
+        ]
+      },
+      "356": {
+        "year": 2026,
+        "notes": "",
+        "listId": "wishlist"
+      },
+      "372": {
+        "year": 2024,
+        "notes": "Went with Grandma Dianna to travel around the country.",
+        "listId": "visited",
+        "visits": [
+          {
+            "year": 2024,
+            "month": 8,
+            "listId": "visited"
+          }
+        ]
+      },
+      "380": {
+        "year": 2025,
+        "notes": "7 week trip (first 6 weeks with NYU for Screenwriting & Italian Cinema, last week alone).",
+        "listId": "visited",
+        "visits": [
+          {
+            "year": 2025,
+            "month": 6,
+            "listId": "visited"
+          }
+        ]
+      },
+      "484": {
+        "year": 2026,
+        "notes": "",
+        "listId": "wishlist"
+      },
+      "554": {
+        "year": 2026,
+        "notes": "",
+        "listId": "wishlist"
+      },
+      "578": {
+        "year": 2026,
+        "notes": "",
+        "listId": "wishlist"
+      },
+      "604": {
+        "year": 2026,
+        "notes": "",
+        "listId": "wishlist"
+      },
+      "620": {
+        "year": 2026,
+        "notes": "Traveled over Passover with Grandma Dianna; stayed with Catarina.",
+        "listId": "visited",
+        "visits": [
+          {
+            "year": 2026,
+            "month": 4,
+            "listId": "visited"
+          }
+        ]
+      },
+      "630": {
+        "year": 2026,
+        "notes": "",
+        "listId": "wishlist"
+      },
+      "724": {
+        "year": 2026,
+        "notes": "",
+        "listId": "wishlist"
+      },
+      "792": {
+        "year": 2026,
+        "notes": "",
+        "listId": "wishlist"
+      },
+      "826": {
+        "year": 2024,
+        "notes": "Went with Grandma Dianna to travel around the country.",
+        "listId": "visited",
+        "visits": [
+          {
+            "year": 2024,
+            "month": 8,
+            "listId": "visited"
+          }
+        ]
+      },
+      "840": {
+        "year": 2005,
+        "notes": "A born and raised American!",
+        "listId": "lived",
+        "visits": [
+          {
+            "year": 2005,
+            "listId": "lived"
+          }
+        ]
+      },
+      "040": {
+        "year": 2018,
+        "notes": "Went with Grandma Dianna and Grandpa Michael to spend a night in Vienna.",
+        "listId": "visited",
+        "visits": [
+          {
+            "year": 2018,
+            "month": 7,
+            "listId": "visited"
+          }
+        ]
+      },
+      "044": {
+        "year": 2021,
+        "notes": "Trip with the Hassetts and Chris",
+        "listId": "visited",
+        "visits": [
+          {
+            "year": 2021,
+            "month": 6,
+            "listId": "visited"
+          }
+        ]
+      }
+    },
+    "regionMarks": {
+      "AT": {
+        "Wien": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        }
+      },
+      "CN": {
+        "Guangdong": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        }
+      },
+      "DE": {
+        "Bayern": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "Hessen": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        }
+      },
+      "US": {
+        "10": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "11": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "12": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "13": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "15": {
+          "year": 2026,
+          "notes": "",
+          "listId": "wishlist"
+        },
+        "17": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "18": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "21": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "23": {
+          "year": 2026,
+          "notes": "",
+          "listId": "wishlist"
+        },
+        "24": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "25": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "30": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "33": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "34": {
+          "year": 2026,
+          "notes": "",
+          "listId": "lived"
+        },
+        "36": {
+          "year": 2026,
+          "notes": "",
+          "listId": "lived"
+        },
+        "37": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "39": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "42": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "44": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "45": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "46": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "47": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "48": {
+          "year": 2026,
+          "notes": "",
+          "listId": "wishlist"
+        },
+        "50": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "51": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "55": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "56": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "02": {
+          "year": 2026,
+          "notes": "",
+          "listId": "wishlist"
+        },
+        "06": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "09": {
+          "year": 2026,
+          "notes": "",
+          "listId": "visited"
+        },
+        "Puerto Rico": {
+          "year": 2026,
+          "notes": "",
+          "listId": "wishlist"
+        }
+      }
+    },
+    "places": {},
+    "lists": [
+      {
+        "id": "lived",
+        "name": "Lived",
+        "color": "#df4d12"
+      },
+      {
+        "id": "visited",
+        "name": "Visited",
+        "color": "#0c8a6f"
+      },
+      {
+        "id": "wishlist",
+        "name": "Wish List",
+        "wish": true,
+        "color": null
+      }
+    ],
+    "journeys": [
+      {
+        "id": "j436181",
+        "end": "2026-07-08",
+        "lang": "",
+        "mode": "car",
+        "name": "The Renaud's National Parks Trip",
+        "modes": [
+          "car",
+          "biking",
+          "walking"
+        ],
+        "start": "2026-06-22",
+        "stops": [
+          {
+            "lat": 41.26,
+            "lon": -81.55,
+            "kind": "park",
+            "name": "Cuyahoga Valley NP",
+            "notes": "Surprise first stop to see the water fall!"
+          },
+          {
+            "lat": 41.0799898,
+            "lon": -85.1386015,
+            "kind": "city",
+            "name": "Fort Wayne",
+            "notes": "Stayed the night with Matt & Jenn Garnett :) Next morning we picked up the (very luxurious) van!"
+          },
+          {
+            "lat": 41.65,
+            "lon": -87.05,
+            "kind": "park",
+            "name": "Indiana Dunes NP",
+            "notes": "Quick stop, saw Lake Michigan and enjoyed the dunes."
+          },
+          {
+            "lat": 43.5476008,
+            "lon": -96.7293629,
+            "kind": "city",
+            "name": "Sioux Falls",
+            "notes": "Stayed at a Mariott and took a costume meeting in the morning before we took off. "
+          },
+          {
+            "lat": 43.75,
+            "lon": -102.5,
+            "kind": "park",
+            "name": "Badlands NP",
+            "notes": "INSANE!!! Go back! Malachi, Josiah, and I climbed around and had such a blast. We also saw buffalo, mountain goats, deer, bunnies, and (prize for cutest) prairie dogs!"
+          },
+          {
+            "lat": 43.9051214,
+            "lon": -103.5354553,
+            "kind": "place",
+            "name": "Mount Rushmore KOA Resort at Palmer Gulch Resort",
+            "notes": "I barely remember... we got in late, slept in the car, and left early. Seemed chill though."
+          },
+          {
+            "lat": 43.8808551,
+            "lon": -103.4538231,
+            "kind": "place",
+            "name": "Mount Rushmore National Memorial",
+            "notes": "We happened to watch National Treasure 2 right before visiting - wild to see it in real life."
+          },
+          {
+            "lat": 43.8362855,
+            "lon": -103.6230472,
+            "kind": "place",
+            "name": "Crazy Horse Memorial",
+            "notes": "The face, hand, and part of the arm were completed so far! Hoping to check back in 50 years to see the progress :)"
+          },
+          {
+            "lat": 43.7306701,
+            "lon": -103.831903,
+            "kind": "place",
+            "name": "Jewel Cave National Monument",
+            "notes": "Beautiful, but the tour was a little lame... should have done the Scenic Tour (goes down into the cave) instead of the Discovery Tour (static in one cave chamber)"
+          },
+          {
+            "lat": 43.57,
+            "lon": -103.48,
+            "kind": "park",
+            "name": "Wind Cave NP",
+            "notes": "Insane 1.2 hour tour, we went 200 ft underground"
+          },
+          {
+            "lat": 44.4707084,
+            "lon": -103.8264066,
+            "kind": "place",
+            "name": "Chris' Campground",
+            "notes": "Super sweet family owned campground! Mom said she wants to open a place like this when they move down south :)"
+          },
+          {
+            "lat": 44.5898033,
+            "lon": -104.7151634,
+            "kind": "place",
+            "name": "Devils Tower National Monument",
+            "notes": "Climbed the boulder field - epic"
+          },
+          {
+            "lat": 45.759662,
+            "lon": -109.7819266,
+            "kind": "city",
+            "name": "Greycliff",
+            "notes": "Stayed at an AirBnB at Hangerman Ranch, surrounded by cows, the Rocky Mountains, and passing trains"
+          },
+          {
+            "lat": 44.9799069,
+            "lon": -110.6973563,
+            "kind": "place",
+            "name": "Mammoth Campground Trail"
+          },
+          {
+            "lat": 44.6,
+            "lon": -110.5,
+            "kind": "park",
+            "name": "Yellowstone NP"
+          }
+        ],
+        "review": {
+          "eats": "Wall Drug -- wish we got to stay longer, but they have good custard",
+          "stay": "Chris's Campground was awesome!",
+          "rating": 5,
+          "returnq": "yes",
+          "highlight": "Climbing in the Badlands and Devils Tower boulder field"
+        },
+        "journal": [],
+        "remember": [
+          "Book the Scenic Tour for Jewel Cave",
+          "Schedule in more adjustment time",
+          "Bring water shoes",
+          "Pack an actual rain jacket, not just a weatherproof jacket"
+        ],
+        "travelers": [
+          {
+            "age": "21",
+            "name": "Kaylee",
+            "avatar": 0
+          },
+          {
+            "age": "18",
+            "name": "Lucy",
+            "avatar": 1
+          },
+          {
+            "age": "16",
+            "name": "Mariele",
+            "avatar": 2
+          },
+          {
+            "age": "12",
+            "name": "Josiah",
+            "avatar": 3
+          },
+          {
+            "age": "9",
+            "name": "Malachi",
+            "avatar": 4
+          },
+          {
+            "age": "39",
+            "name": "Mom",
+            "avatar": 5
+          },
+          {
+            "age": "42",
+            "name": "Dad",
+            "avatar": 6
+          }
+        ]
+      },
+      {
+        "id": "j445242",
+        "end": "2026-04-13",
+        "lang": "",
+        "mode": "car",
+        "name": "Portugal",
+        "modes": [],
+        "start": "2026-04-03",
+        "stops": [
+          {
+            "lat": 41.1502195,
+            "lon": -8.6103497,
+            "kind": "city",
+            "name": "Porto"
+          },
+          {
+            "lat": 41.2373456,
+            "lon": -8.6299982,
+            "kind": "place",
+            "name": "Maia"
+          },
+          {
+            "lat": 41.1845394,
+            "lon": -8.5571542,
+            "kind": "place",
+            "name": "Rio Tinto"
+          },
+          {
+            "lat": 39.65679,
+            "lon": -8.57963,
+            "kind": "city",
+            "name": "Ourém"
+          },
+          {
+            "lat": 38.72,
+            "lon": -9.14,
+            "kind": "city",
+            "name": "Lisbon"
+          },
+          {
+            "lat": 38.5698586,
+            "lon": -7.9056625,
+            "kind": "place",
+            "name": "Convento do Carmo"
+          },
+          {
+            "lat": 38.7077934,
+            "lon": -9.1365543,
+            "kind": "place",
+            "name": "Comércio Square"
+          },
+          {
+            "lat": 41.5136392,
+            "lon": -7.9878132,
+            "kind": "city",
+            "name": "Cabeceiras de Basto"
+          },
+          {
+            "lat": 41.5085893,
+            "lon": -8.0696939,
+            "kind": "city",
+            "name": "Várzea Cova"
+          },
+          {
+            "lat": 37.7393398,
+            "lon": -25.6689503,
+            "kind": "city",
+            "name": "Ponta Delgada"
+          }
+        ],
+        "review": {},
+        "journal": [],
+        "travelers": []
+      }
+    ],
+    "year": 2026,
+    "extraUnesco": [],
+    "airports": {}
+  }
+}

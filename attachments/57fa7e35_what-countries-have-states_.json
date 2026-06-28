@@ -1,0 +1,77 @@
+[
+  {
+    "flagCode": "AT",
+    "country": "Austria",
+    "CountriesWithStatesDetails": "9 states (Bundesländer)"
+  },
+  {
+    "flagCode": "MM",
+    "country": "Myanmar",
+    "CountriesWithStatesDetails": "7 states, 7 regions, 5 self-administered zones, 1 union territory, 1 self-adminstered region"
+  },
+  {
+    "flagCode": "AU",
+    "country": "Australia",
+    "CountriesWithStatesDetails": "6 states and 10 territories, including one capital territory"
+  },
+  {
+    "flagCode": "US",
+    "country": "United States",
+    "CountriesWithStatesDetails": "50 states and 1 capital territory"
+  },
+  {
+    "flagCode": "FM",
+    "country": "Micronesia",
+    "CountriesWithStatesDetails": "4 states"
+  },
+  {
+    "flagCode": "NG",
+    "country": "Nigeria",
+    "CountriesWithStatesDetails": "36 states and 1 capital territory"
+  },
+  {
+    "flagCode": "MX",
+    "country": "Mexico",
+    "CountriesWithStatesDetails": "31 states (estados) and 1 federal capital district"
+  },
+  {
+    "flagCode": "IN",
+    "country": "India",
+    "CountriesWithStatesDetails": "28 states (pradesh), 8 union territories, and 25 autonomous administrative divisions"
+  },
+  {
+    "flagCode": "BR",
+    "country": "Brazil",
+    "CountriesWithStatesDetails": "26 states (estados) and 1 federal/capital district"
+  },
+  {
+    "flagCode": "NZ",
+    "country": "New Zealand",
+    "CountriesWithStatesDetails": "2 states \"in free association\" alongside several territories and regions"
+  },
+  {
+    "flagCode": "SD",
+    "country": "Sudan",
+    "CountriesWithStatesDetails": "18 states (wilayat)"
+  },
+  {
+    "flagCode": "DE",
+    "country": "Germany",
+    "CountriesWithStatesDetails": "16 states (Bundesländer), including 3 Stadtstaaten (city-states) and 13 Flächenländer (area states)"
+  },
+  {
+    "flagCode": "PW",
+    "country": "Palau",
+    "CountriesWithStatesDetails": "16 states"
+  },
+  {
+    "flagCode": "MY",
+    "country": "Malaysia",
+    "CountriesWithStatesDetails": "13 states (Negeri) and 3 federal territories"
+  },
+  {
+    "flagCode": "SS",
+    "country": "South Sudan",
+    "CountriesWithStatesDetails": "10 states, with as many as 32 in the past"
+  }
+]
