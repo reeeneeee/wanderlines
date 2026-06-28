@@ -186,6 +186,8 @@
   .chips{display:flex;flex-wrap:wrap;gap:6px}
   .chip{font-size:12px;background:var(--hover);border:1px solid var(--rule);border-radius:20px;padding:4px 10px}
   .chip.wishchip{border-style:dashed;border-color:var(--gold);color:var(--muted)}
+  .chip .chipx{cursor:pointer;color:var(--muted);font-weight:700;margin-left:3px;opacity:.7}
+  .chip .chipx:hover{opacity:1;color:var(--accent)}
   .field{margin-bottom:12px}
   .field label{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
   .field input{width:100%;border:1px solid var(--rule);background:var(--field);border-radius:8px;padding:10px 12px;font:inherit}
@@ -1504,32 +1506,70 @@ function loadRegionIndex(){ if(REGION_INDEX||regionIndexLoading) return; regionI
     .then(d=>{ regionIndexLoading=false; if(Array.isArray(d)){ REGION_INDEX=d; if(searchIn.value.trim()) runSearch(); } })
     .catch(()=>{ regionIndexLoading=false; }); }
 // the full ~1,000-site UNESCO list, lazy-loaded for search only (the map keeps the 64 pins)
-let UNESCO_FULL=null, unescoLoading=false;
-function loadUnescoFull(){
-  if(UNESCO_FULL||unescoLoading) return; unescoLoading=true;
+// Normalize a string for searching: lowercase, strip accents, drop ALL punctuation/whitespace.
+// So "Côte d'Ivoire", "cote d ivoire" and "cotedivoire" all match, and punctuation never matters.
+function normSearch(s){ return (s==null?'':''+s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,''); }
+let UNESCO_FULL=null, unescoLoading=false, unescoCbs=[];
+function loadUnescoFull(cb){
+  if(UNESCO_FULL){ cb&&cb(); return; }
+  if(cb) unescoCbs.push(cb);
+  if(unescoLoading) return; unescoLoading=true;
   fetch('https://cdn.jsdelivr.net/gh/Igor-Vladyka/realplanet@master/data/places/real.planet.unesco.json')
-    .then(r=>r.json()).then(d=>{ UNESCO_FULL=d.filter(x=>x.latitude&&x.longitude).map(x=>({name:x.name_en,lon:+x.longitude,lat:+x.latitude}));
-      if(searchIn.value.trim()) runSearch(); }).catch(()=>{ unescoLoading=false; });
+    .then(r=>r.json()).then(d=>{ UNESCO_FULL=d.filter(x=>x.latitude&&x.longitude).map(x=>({name:x.name_en,country:x.states_name_en||'',lon:+x.longitude,lat:+x.latitude}));
+      if(searchIn.value.trim()) runSearch(); unescoCbs.forEach(f=>{try{f();}catch(e){}}); unescoCbs=[]; }).catch(()=>{ unescoLoading=false; });
+}
+// US state for each National Park (derived once from the US states map), so parks are searchable by state.
+let PARK_STATES=null, parkStatesLoading=false, parkStatesCbs=[];
+function loadParkStates(cb){
+  if(PARK_STATES){ cb&&cb(); return; }
+  if(cb) parkStatesCbs.push(cb);
+  if(parkStatesLoading) return; parkStatesLoading=true;
+  d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(topo=>{
+    const states=topojson.feature(topo,topo.objects.states).features; PARK_STATES={};
+    LANDMARKS.parks.forEach(([name,lon,lat])=>{ if(lon==null||lat==null) return;
+      const st=states.find(f=>{ try{ return d3.geoContains(f,[lon,lat]); }catch(e){ return false; } }); if(st) PARK_STATES[name]=st.properties.name; });
+    parkStatesCbs.forEach(f=>{try{f();}catch(e){}}); parkStatesCbs=[];
+  }).catch(()=>{ parkStatesLoading=false; });
+}
+// Build a searchable index for a landmark layer; matches name, country and (parks) US state.
+function landmarkIndex(layer){
+  if(layer==='parks') return LANDMARKS.parks.map(([name,lon,lat])=>({name,lon,lat,layer:'parks',country:'United States',state:(PARK_STATES&&PARK_STATES[name])||''}));
+  const out=[], seen=new Set();
+  if(UNESCO_FULL) UNESCO_FULL.forEach(s=>{ const k=normSearch(s.name); if(seen.has(k))return; seen.add(k); out.push({name:s.name,lon:s.lon,lat:s.lat,layer:'unesco',country:s.country||''}); });
+  LANDMARKS.unesco.forEach(([name,lon,lat])=>{ const k=normSearch(name); if(seen.has(k))return; seen.add(k); out.push({name,lon,lat,layer:'unesco',country:''}); });
+  return out;
+}
+function landmarkSearch(layer,q){ const nq=normSearch(q); if(!nq) return [];
+  const hits=landmarkIndex(layer).filter(p=> normSearch(p.name).includes(nq) || (p.country&&normSearch(p.country).includes(nq)) || (p.state&&normSearch(p.state).includes(nq)) );
+  hits.sort((a,b)=>{ const an=normSearch(a.name).startsWith(nq),bn=normSearch(b.name).startsWith(nq); if(an!==bn)return an?-1:1; return a.name.localeCompare(b.name); });
+  return hits.slice(0,10);
+}
+// Log a landmark into its list (and keep it as a map pin), persisting custom ones. Returns true if newly added.
+function logPlace(layer,name,lon,lat,year){ name=(name||'').trim(); if(!name) return false;
+  const arr=layer==='parks'?LANDMARKS.parks:LANDMARKS.unesco, extra=layer==='parks'?state.extraParks:state.extraUnesco;
+  if(lon!=null&&lat!=null && !arr.some(([n])=>n===name)){ arr.push([name,lon,lat]); extra.push([name,lon,lat]); }
+  const k=pkey(layer,name); if(!state.places[k]){ state.places[k]={listId:'visited',year:year||state.year}; return true; } return false;
 }
 function runSearch(){
-  const q=searchIn.value.trim().toLowerCase();
-  if(!q||!wfeats){ searchRes.classList.remove('open'); return; }
-  loadUnescoFull(); loadCountryData();
+  const nq=normSearch(searchIn.value);
+  if(!nq||!wfeats){ searchRes.classList.remove('open'); return; }
+  loadUnescoFull(); loadParkStates(); loadCountryData();
   // every country (even tiny island nations that aren't drawn or are too small to tap)
   const seenC=new Set(), countries=[];
-  wfeats.filter(f=>f.properties.name.toLowerCase().includes(q)).forEach(f=>{ const id=String(f.id); seenC.add(id); countries.push({type:'country',id,f,name:f.properties.name}); });
+  wfeats.filter(f=>normSearch(f.properties.name).includes(nq)).forEach(f=>{ const id=String(f.id); seenC.add(id); countries.push({type:'country',id,f,name:f.properties.name}); });
   Object.keys(C_DATA).forEach(id=>{ if(seenC.has(id)) return; const c=C_DATA[id], dn=displayName(id);
-    if(c.name.toLowerCase().includes(q)||(dn||'').toLowerCase().includes(q)||(c.official||'').toLowerCase().includes(q)){
+    if(normSearch(c.name).includes(nq)||normSearch(dn).includes(nq)||normSearch(c.official).includes(nq)){
       seenC.add(id); countries.push({type:'country',id,f:wfeats.find(x=>String(x.id)===id)||null,name:dn||c.name}); } });
   const lms=[], useen=new Set();
-  LANDMARKS.parks.forEach(([name,lon,lat])=>{ if(name.toLowerCase().includes(q)) lms.push({type:'parks',name:name+' NP',lon,lat,layer:'parks'}); });
-  LANDMARKS.unesco.forEach(([name,lon,lat])=>{ if(name.toLowerCase().includes(q)){ useen.add(name.toLowerCase()); lms.push({type:'unesco',name,lon,lat,layer:'unesco'}); } });
-  if(UNESCO_FULL) UNESCO_FULL.forEach(s=>{ if(s.name.toLowerCase().includes(q)&&!useen.has(s.name.toLowerCase())) lms.push({type:'unesco',name:s.name,lon:s.lon,lat:s.lat,layer:'unesco'}); });
+  LANDMARKS.parks.forEach(([name,lon,lat])=>{ const st=(PARK_STATES&&PARK_STATES[name])||'';
+    if(normSearch(name).includes(nq)||(st&&normSearch(st).includes(nq))) lms.push({type:'parks',name:name+' NP',lon,lat,layer:'parks'}); });
+  LANDMARKS.unesco.forEach(([name,lon,lat])=>{ const k=normSearch(name); if(k.includes(nq)){ useen.add(k); lms.push({type:'unesco',name,lon,lat,layer:'unesco'}); } });
+  if(UNESCO_FULL) UNESCO_FULL.forEach(s=>{ const k=normSearch(s.name); if(!useen.has(k)&&(k.includes(nq)||(s.country&&normSearch(s.country).includes(nq)))) lms.push({type:'unesco',name:s.name,lon:s.lon,lat:s.lat,layer:'unesco'}); });
   // sub-regions (states, provinces, prefectures, departments…) → open that country's regional page
   const regions=[]; if(REGION_INDEX){ const rseen=new Set();
-    REGION_INDEX.forEach(ri=>{ if(ri.n.toLowerCase().includes(q)){ const k=ri.n.toLowerCase()+'@'+ri.c; if(rseen.has(k))return; rseen.add(k);
+    REGION_INDEX.forEach(ri=>{ if(normSearch(ri.n).includes(nq)){ const k=normSearch(ri.n)+'@'+ri.c; if(rseen.has(k))return; rseen.add(k);
       const set=REGION_SETS.find(r=>r.code===ri.c); if(set) regions.push({type:'subregion',name:ri.n,code:ri.c,country:set.name}); } }); }
-  const byName=(a,b)=>{ const an=a.name.toLowerCase().startsWith(q),bn=b.name.toLowerCase().startsWith(q); if(an!==bn)return an?-1:1; return a.name.localeCompare(b.name); };
+  const byName=(a,b)=>{ const an=normSearch(a.name).startsWith(nq),bn=normSearch(b.name).startsWith(nq); if(an!==bn)return an?-1:1; return a.name.localeCompare(b.name); };
   countries.sort(byName); regions.sort(byName); lms.sort(byName);
   searchHits=[...countries.slice(0,6), ...regions.slice(0,6), ...lms.slice(0,6)].slice(0,12);
   if(!searchHits.length){ searchRes.innerHTML='<div class="none">Nothing found</div>'; searchRes.classList.add('open'); return; }
@@ -1578,15 +1618,15 @@ function zoomToCountry(feat){
 }
 searchIn.oninput=runSearch;
 searchIn.onkeydown=e=>{ if(e.key==='Enter'&&searchHits.length) pickSearch(0); };
-searchIn.onfocus=()=>{ loadUnescoFull(); loadRegionIndex(); if(searchIn.value.trim()) runSearch(); };
+searchIn.onfocus=()=>{ loadUnescoFull(); loadParkStates(); loadRegionIndex(); if(searchIn.value.trim()) runSearch(); };
 
 // ---------------- region search (states / provinces) ----------------
 const searchIn2=document.getElementById('search-in2'), searchRes2=document.getElementById('search-res2');
 let searchHits2=[];
 function runSearch2(){
-  const q=searchIn2.value.trim().toLowerCase();
-  if(!q||!rfeats){ searchRes2.classList.remove('open'); return; }
-  searchHits2=rfeats.filter(f=>(f.properties.name||'').toLowerCase().includes(q))
+  const nq=normSearch(searchIn2.value);
+  if(!nq||!rfeats){ searchRes2.classList.remove('open'); return; }
+  searchHits2=rfeats.filter(f=>normSearch(f.properties.name).includes(nq))
     .sort((a,b)=>a.properties.name.localeCompare(b.properties.name)).slice(0,7);
   if(!searchHits2.length){ searchRes2.innerHTML='<div class="none">Nothing found</div>'; searchRes2.classList.add('open'); return; }
   searchRes2.innerHTML=searchHits2.map((f,i)=>{
@@ -1789,23 +1829,44 @@ function renderLists(){
 }
 function renderLandmarkLists(){
   const box=document.getElementById('landmark-lists'); box.innerHTML='';
-  [['parks','National Parks','park','#2f7d4f'],['unesco','UNESCO World Heritage','unesco','#6c5ce0']].forEach(([layer,title,ic,col])=>{
-    const entries=Object.entries(state.places).filter(([k])=>k.startsWith(layer+':'))
-      .map(([k,v])=>({name:k.slice(layer.length+1),...v})).sort((a,b)=>a.name.localeCompare(b.name));
-    const visited=entries.filter(e=>e.listId==='visited').length, wish=entries.filter(e=>e.listId==='wishlist').length;
-    const card=document.createElement('div'); card.className='card';
-    let h=`<div class="row" style="cursor:default">
+  [['parks','National Parks','park','#2f7d4f','Search a park, or a state / country…'],
+   ['unesco','UNESCO World Heritage','unesco','#6c5ce0','Search a site, or a country…']].forEach(cfg=>box.appendChild(buildLandmarkCard(cfg)));
+}
+function buildLandmarkCard([layer,title,ic,col,ph]){
+  const card=document.createElement('div'); card.className='card';
+  card.innerHTML=`<div class="row" style="cursor:default">
       <span class="sw" style="background:${col};display:flex;align-items:center;justify-content:center;color:#fff">${ICON(ic,12)}</span>
-      <div class="nm">${title}<small>tap a pin on the World Map to log one</small></div>
-      <div class="ct">${visited} visited${wish?` · ${wish} wish`:''}</div></div>`;
-    if(entries.length){
-      h+='<div class="chips" style="margin-top:10px">'+entries.map(e=>
-        `<span class="chip${e.listId==='wishlist'?' wishchip':''}">${e.name}${e.listId==='visited'&&e.year?' · '+e.year:''}</span>`).join('')+'</div>';
-    } else {
-      h+=`<div class="lead" style="margin:10px 0 0;font-size:12px">None logged yet. Switch the ${title} layer on in the World Map and tap a pin.</div>`;
-    }
-    card.innerHTML=h; box.appendChild(card);
-  });
+      <div class="nm">${title}<small>search to add one, or tap a pin on the World Map</small></div>
+      <div class="ct" data-ct></div></div>
+    <div class="searchbox" style="position:relative;margin-top:10px"><span class="si lm-si"></span>
+      <input class="lm-search" placeholder="${ph}" autocomplete="off"/><div class="sres lm-res"></div></div>
+    <div class="lm-chips" style="margin-top:10px"></div>`;
+  card.querySelector('.lm-si').innerHTML=ICON('search',15);
+  const inp=card.querySelector('.lm-search'), res=card.querySelector('.lm-res'), chips=card.querySelector('.lm-chips'), ct=card.querySelector('[data-ct]');
+  function refresh(){
+    const entries=Object.entries(state.places).filter(([k])=>k.startsWith(layer+':')).map(([k,v])=>({name:k.slice(layer.length+1),...v})).sort((a,b)=>a.name.localeCompare(b.name));
+    const visited=entries.filter(e=>e.listId==='visited').length, wish=entries.filter(e=>e.listId==='wishlist').length;
+    ct.textContent=`${visited} visited${wish?` · ${wish} wish`:''}`;
+    chips.innerHTML = entries.length ? '<div class="chips">'+entries.map(e=>`<span class="chip${e.listId==='wishlist'?' wishchip':''}" data-nm="${e.name.replace(/"/g,'&quot;')}">${e.name}${e.listId==='visited'&&e.year?' · '+e.year:''} <span class="chipx">✕</span></span>`).join('')+'</div>'
+      : `<div class="lead" style="margin:4px 0 0;font-size:12px">None logged yet. Search above to add one.</div>`;
+    chips.querySelectorAll('.chip').forEach(c=>{ const x=c.querySelector('.chipx'); if(x) x.onclick=()=>{ delete state.places[pkey(layer,c.dataset.nm)]; saveState(); refresh(); }; });
+  }
+  function doSearch(){ const q=inp.value.trim();
+    if(!q){ res.classList.remove('open'); return; }
+    const loaded = layer==='parks' ? PARK_STATES!==null : UNESCO_FULL!==null;
+    const hits=landmarkSearch(layer,q);
+    res.innerHTML = hits.length ? hits.map((h,i)=>{ const logged=!!state.places[pkey(layer,h.name)], sub=[h.state,h.country].filter(Boolean).join(', ');
+        return `<div class="sr" data-i="${i}"><span class="srl">${ICON(ic,14)} ${h.name}${sub?` <small>${sub}</small>`:''}</span>${logged?'<span class="rchip" style="pointer-events:none">✓ Logged</span>':'<span class="rchip">Add ›</span>'}</div>`; }).join('')
+      : (loaded?'<div class="none">Nothing found</div>':'<div class="none">Loading…</div>');
+    res.classList.add('open');
+    res.querySelectorAll('.sr').forEach((el,i)=>el.onclick=()=>{ const h=hits[i]; if(!h) return;
+      logPlace(layer,h.name,h.lon,h.lat,state.year); saveState(); if(typeof renderMarks==='function') renderMarks();
+      refresh(); inp.value=''; res.classList.remove('open'); inp.focus(); });
+  }
+  inp.onfocus=()=>{ (layer==='parks'?loadParkStates:loadUnescoFull)(()=>{ if(inp.value.trim()) doSearch(); }); };
+  inp.oninput=doSearch;
+  refresh();
+  return card;
 }
 document.getElementById('addlist-btn').onclick=()=>{
   const nm=document.getElementById('newlist-name').value.trim(); if(!nm)return;
@@ -1933,11 +1994,11 @@ function renderAirports(){
       <div id="ap-res" class="sres"></div></div><div id="ap-logged"></div>`;
   box.querySelector('#ap-si').innerHTML=ICON('search',15);
   const inp=box.querySelector('#ap-search'), res=box.querySelector('#ap-res');
-  function apSearch(){ const q=inp.value.trim().toLowerCase();
-    if(!q){ res.classList.remove('open'); return; }
+  function apSearch(){ const nq=normSearch(inp.value);
+    if(!nq){ res.classList.remove('open'); return; }
     if(!AIRPORTS){ res.innerHTML='<div class="none">Loading airports…</div>'; res.classList.add('open'); loadAirports(()=>{ if(inp.value.trim()) apSearch(); }); return; }
-    const hits=AIRPORTS.filter(a=>a.iata.toLowerCase()===q||a.name.toLowerCase().includes(q)||(a.city||'').toLowerCase().includes(q))
-      .sort((a,b)=>(a.iata.toLowerCase()===q?-1:0)-(b.iata.toLowerCase()===q?-1:0)).slice(0,8);
+    const hits=AIRPORTS.filter(a=>normSearch(a.iata)===nq||normSearch(a.name).includes(nq)||normSearch(a.city).includes(nq)||normSearch(a.country).includes(nq))
+      .sort((a,b)=>(normSearch(a.iata)===nq?-1:0)-(normSearch(b.iata)===nq?-1:0)).slice(0,8);
     res.innerHTML=hits.length?hits.map((a,i)=>`<div class="sr" data-i="${i}"><span class="srl"><b>${a.iata}</b> · ${a.name}<small>${a.city||''}${a.country?', '+a.country:''}</small></span></div>`).join(''):'<div class="none">No airport found</div>';
     res.classList.add('open');
     res.querySelectorAll('.sr').forEach((el,i)=>el.onclick=()=>{ const a=hits[i];
@@ -2757,11 +2818,11 @@ function renderJmHits(){
   jmRes.querySelectorAll('.sr').forEach(el=>el.onclick=()=>addStop(jmHits[+el.dataset.i]));
 }
 function runJmSearch(){
-  const q=jmSearch.value.trim(), ql=q.toLowerCase();
+  const q=jmSearch.value.trim(), ql=q.toLowerCase(), nq=normSearch(q);
   if(!ql){ jmRes.classList.remove('open'); jmHits=[]; jmLoading=false; clearTimeout(jmGeoTimer); return; }
   const order={country:0,city:1,unesco:2,park:3,water:4,place:5};
-  jmHits=stopIndex().filter(p=>p.name.toLowerCase().includes(ql))
-    .sort((a,b)=>{ const an=a.name.toLowerCase().startsWith(ql),bn=b.name.toLowerCase().startsWith(ql);
+  jmHits=stopIndex().filter(p=>normSearch(p.name).includes(nq))
+    .sort((a,b)=>{ const an=normSearch(a.name).startsWith(nq),bn=normSearch(b.name).startsWith(nq);
       if(an!==bn) return an?-1:1; if(a.kind!==b.kind) return (order[a.kind]||9)-(order[b.kind]||9); return a.name.localeCompare(b.name); }).slice(0,6);
   jmLoading = ql.length>=3;
   renderJmHits();
@@ -2990,11 +3051,11 @@ function renderExplore(){
   const box=document.getElementById('explore-grid'); if(!box) return;
   const ids=Object.keys(C_DATA);
   if(!ids.length){ box.innerHTML='<div class="ex-empty">Loading countries…</div>'; return; }
-  const q=(exSearch.value||'').trim().toLowerCase();
+  const rawq=(exSearch.value||'').trim(), nq=normSearch(rawq);
   const list=ids.map(id=>({id,c:C_DATA[id],dn:displayName(id)}))
-    .filter(o=>!q || o.c.name.toLowerCase().includes(q) || (o.dn||'').toLowerCase().includes(q) || o.c.official.toLowerCase().includes(q))
+    .filter(o=>!nq || normSearch(o.c.name).includes(nq) || normSearch(o.dn).includes(nq) || normSearch(o.c.official).includes(nq) || normSearch(o.c.region).includes(nq))
     .sort((a,b)=>a.dn.localeCompare(b.dn));
-  if(!list.length){ box.innerHTML='<div class="ex-empty">No country matches “'+q+'”.</div>'; return; }
+  if(!list.length){ box.innerHTML='<div class="ex-empty">No country matches “'+rawq+'”.</div>'; return; }
   box.innerHTML='<div class="ex-grid">'+list.map(o=>{
     const m=state.marks[o.id], dot=m?`<span class="mk" style="background:${colorFor(m)||'transparent'}"></span>`:'';
     return `<button class="ex-tab" data-id="${o.id}"><img src="https://flagcdn.com/h40/${o.c.a2}.png" alt="" loading="lazy"/><span>${o.dn}</span>${dot}</button>`;
