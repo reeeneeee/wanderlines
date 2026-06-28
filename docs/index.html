@@ -27,7 +27,7 @@
     --ocean:#edd2a0; --ocean-hi:#f7ebcb; --land:#39281f; --land-stroke:#f7ecd6;
     --paper:#f8eccf; --ink:#2a1d14; --muted:#9a7e57; --rule:#d6a347;
     --field:#fff7e6; --hover:#fdeecb; --accent:#df4d12; --accent2:#0c8a6f; --gold:#eaa314;
-    --c-lived:#df4d12; --c-visited:#0c8a6f; --c-wish:#5e473a; --on-accent:#fff;
+    --c-lived:#df4d12; --c-visited:#0c8a6f; --c-wish:#61534c; --on-accent:#fff;
     --photo-filter:sepia(.22) saturate(1.15) contrast(1.05); --grain-opacity:.14; --route-dash:7 4; --grid:#a3742c;
     --font:"Jost",-apple-system,"Segoe UI",sans-serif;
     --font-display:"Bungee","Jost",sans-serif; --font-hand:"Caveat",cursive;
@@ -3562,7 +3562,7 @@ Object.keys(VIBE_DISPLAY).forEach(vibe=>{
   }catch(_){}
 });
 // app version (build.mjs injects the real number) so you can confirm you're on the latest build
-const APP_VER='v52';
+const APP_VER='v53';
 try{ const vl=document.getElementById('app-ver-line'); if(vl) vl.textContent='Wanderlines '+(APP_VER.indexOf('APP_VER')>=0?'(dev)':APP_VER); }catch(_){}
 // paint our own line-icons into every static [data-icon] slot (no emoji)
 document.querySelectorAll('[data-icon]').forEach(el=>{ el.innerHTML=ICON(el.dataset.icon, +(el.dataset.isz)||18); });
