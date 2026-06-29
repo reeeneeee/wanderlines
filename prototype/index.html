@@ -20,6 +20,7 @@
     --paper:#f4e9d0; --ink:#2a2016; --muted:#8a7a60; --rule:#d8b257;
     --field:#fbf3df; --hover:#f3e6c5; --accent:#dd4327; --accent2:#2e8ca2; --gold:#ee7d35; --on-accent:#fff7ea;
     --c-lived:#dd4327; --c-visited:#2e8ca2; --c-wish:#e7a52e; --on-accent:#fff7ea;
+    --lm-park:#4f8a4a; --lm-unesco:#7d5ba6; --pin-ring:#fbf3df;
     --photo-filter:sepia(.28) saturate(1.22) contrast(1.08) brightness(1.01); --grain-opacity:.15; --route-dash:7 4; --grid:#bf9742;
     --font:"Jost",-apple-system,"Segoe UI",sans-serif;
     --font-display:"Bungee","Jost",sans-serif; --font-hand:"Caveat",cursive;
@@ -30,6 +31,7 @@
     --paper:#0c1a2e; --ink:#dde9f5; --muted:#7d92ab; --rule:#274059;
     --field:#102339; --hover:#16304d; --accent:#56c4ea; --accent2:#9bb9d6; --gold:#a8c6e0;
     --c-lived:#e9f4fd; --c-visited:#56c4ea; --c-wish:#3a557a;
+    --lm-park:#3fb6a0; --lm-unesco:#9a7cf0; --pin-ring:#bfe0f2;
     --photo-filter:saturate(.95) contrast(1.12) brightness(1.0) hue-rotate(-8deg); --grain-opacity:.06; --route-dash:2 5; --grid:#d3e4f3; --hud:#6f9fc4;
     --font:"Inter",-apple-system,"Helvetica Neue",Arial,sans-serif;
     --font-display:"Share Tech Mono","Space Mono",monospace; --font-hand:"Share Tech Mono",monospace;
@@ -39,6 +41,7 @@
     --paper:#1d0636; --ink:#fdeeff; --muted:#c79be0; --rule:#7a2bd0;
     --field:#270a40; --hover:#350b54; --accent:#ff2bd6; --accent2:#1fe3cb; --gold:#f5e63d;
     --c-lived:#ff2bd6; --c-visited:#1fe3cb; --c-wish:#713aa1;
+    --lm-park:#7ddc4f; --lm-unesco:#c06bff; --pin-ring:#ffffff;
     --photo-filter:saturate(1.6) contrast(1.1) hue-rotate(-6deg); --grain-opacity:.16; --route-dash:10 4; --grid:#a368dd;
     --font:"Righteous",-apple-system,"Segoe UI",sans-serif;
     --font-display:"Monoton","Righteous",sans-serif; --font-hand:"Caveat",cursive;
@@ -48,6 +51,7 @@
     --paper:#f1e6cb; --ink:#3a2117; --muted:#977c57; --rule:#cbac79;
     --field:#f8efd8; --hover:#ead9b3; --accent:#b0392a; --accent2:#cc6a2c; --gold:#c9a23f; --on-accent:#fff5e4;
     --c-lived:#a8322a; --c-visited:#d4772b; --c-wish:#c9a23f;
+    --lm-park:#6e8b3d; --lm-unesco:#9a5a8c; --pin-ring:#6e5026;
     --photo-filter:sepia(.32) saturate(1.22) contrast(1.06) brightness(1.02) hue-rotate(-8deg); --grain-opacity:.14; --route-dash:6 4; --grid:#bb9a62;
     --font:"Fraunces","Georgia","Iowan Old Style",serif;
     --font-display:"Yeseva One","Fraunces",serif; --font-hand:"Marck Script","Caveat",cursive;
@@ -57,6 +61,7 @@
     --paper:#fff0f7; --ink:#6a3c54; --muted:#b07d96; --rule:#f6c5dc; --on-accent:#fff;
     --field:#fff7fb; --hover:#ffe6f3; --accent:#e8478f; --accent2:#e8a23a; --gold:#edae3c;
     --c-lived:#f06bb0; --c-visited:#f2c63f; --c-wish:#fae3ee;
+    --lm-park:#5fc28d; --lm-unesco:#b07ad6; --pin-ring:#ffffff;
     --photo-filter:saturate(1.2) brightness(1.11) contrast(.92) hue-rotate(-4deg); --grain-opacity:.08; --route-dash:2 6; --grid:#dd7aaa;
     --font:"Quicksand",-apple-system,"Segoe UI",sans-serif;
     --font-display:"Chewy","Baloo 2",cursive; --font-hand:"Patrick Hand",cursive;
@@ -66,6 +71,7 @@
     --paper:#e6ceb1; --ink:#2b1d0c; --muted:#7c6238; --rule:#bda173;
     --field:#efddc4; --hover:#dcc3a0; --accent:#9c4a22; --accent2:#6e4a28; --gold:#8a5f28;
     --c-lived:#a8512a; --c-visited:#5e3c1e; --c-wish:#edd8b2;
+    --lm-park:#5d7a3e; --lm-unesco:#7a5a8c; --pin-ring:#5a3d18;
     --photo-filter:sepia(.55) contrast(1.08) brightness(1.0); --grain-opacity:.2; --route-dash:8 3 2 3; --grid:#7e5f2a;
     --font:"EB Garamond","Hoefler Text",Georgia,serif;
     --font-display:"Mustopha","Great Vibes",cursive; --font-hand:"Caveat",cursive;
@@ -368,12 +374,12 @@
   .lyr .d.journeys{background:var(--accent)}
   .key-sec{margin-top:8px;padding-top:8px;border-top:1px solid var(--rule)}
   .key-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
-  .route-dot{stroke:#fff}
+  .route-dot{stroke:var(--pin-ring,#fff)}
   .route-line.route-faint{opacity:.75;stroke-dasharray:none}
   .lyr-note{font-size:11px;color:var(--muted);margin:8px 0 0;line-height:1.45}
-  .pin{cursor:pointer;stroke:#fff;stroke-width:.7;opacity:.62}
-  .pin.parks{fill:#2f7d4f}
-  .pin.unesco{fill:#6c5ce0}
+  .pin{cursor:pointer;stroke:var(--pin-ring,#fff);stroke-width:.9;opacity:.66}
+  .pin.parks{fill:var(--lm-park,#2f7d4f)}
+  .pin.unesco{fill:var(--lm-unesco,#6c5ce0)}
   .pin.is-visited{opacity:1;stroke:var(--gold);stroke-width:1.5}
   .pin.is-wish{opacity:1;fill:var(--paper);stroke:var(--gold);stroke-width:1.2;stroke-dasharray:2.4 1.5}
   .sr .rchip{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);
@@ -414,8 +420,8 @@
   /* route line on the world map */
   .route-halo{fill:none;stroke:var(--paper);stroke-linecap:round;stroke-linejoin:round;opacity:.95}
   .route-line{fill:none;stroke:var(--accent);stroke-linecap:round;stroke-linejoin:round;opacity:1}
-  .route-pin{fill:var(--accent);stroke:#fff}
-  .route-num{fill:#fff;font-weight:700;pointer-events:none}
+  .route-pin{fill:var(--accent);stroke:var(--pin-ring,#fff)}
+  .route-num{fill:var(--on-accent,#fff);font-weight:700;pointer-events:none}
   #route-banner{position:absolute;top:62px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);
     border-radius:22px;padding:8px 8px 8px 15px;display:none;align-items:center;gap:12px;z-index:9;box-shadow:0 6px 18px #0005;font-size:13px;white-space:nowrap}
   #route-banner.show{display:flex}
@@ -3133,10 +3139,10 @@ document.getElementById('jm-delete').onclick=()=>{
 // ---- theme / vibe picker (token-driven; scaffolding untouched) ----
 const THEME_META=[
   {id:'retro',  name:'Retro',   sw:['#ece0c3','#dd4327','#2e8ca2','#1a2c52']},
-  {id:'sleek',  name:'Agent',   sw:['#0a1525','#e9f4fd','#56c4ea','#17283f']},
+  {id:'sleek',  name:'Spyware', sw:['#0a1525','#e9f4fd','#56c4ea','#17283f']},
   {id:'disco',  name:'Disco',   sw:['#1d0636','#ff2bd6','#1fe3cb','#f5e63d']},
   {id:'earthy', name:'Vintage', sw:['#efe1c1','#a8322a','#d4772b','#c9a23f']},
-  {id:'cute',   name:'Cute',    sw:['#ffe2ef','#f06bb0','#f2c63f','#e8478f']},
+  {id:'cute',   name:'Bubblegum', sw:['#ffe2ef','#f06bb0','#f2c63f','#e8478f']},
   {id:'classic',name:'Classic', sw:['#d8bf93','#a8512a','#5e3c1e','#473115']},
 ];
 function buildThemeGrid(){
