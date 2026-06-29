@@ -30,7 +30,7 @@
     --paper:#0c1a2e; --ink:#dde9f5; --muted:#7d92ab; --rule:#274059;
     --field:#102339; --hover:#16304d; --accent:#56c4ea; --accent2:#9bb9d6; --gold:#a8c6e0;
     --c-lived:#e9f4fd; --c-visited:#56c4ea; --c-wish:#3a557a;
-    --photo-filter:saturate(.95) contrast(1.12) brightness(1.0) hue-rotate(-8deg); --grain-opacity:.06; --route-dash:2 5; --grid:#9ec9e8;
+    --photo-filter:saturate(.95) contrast(1.12) brightness(1.0) hue-rotate(-8deg); --grain-opacity:.06; --route-dash:2 5; --grid:#d3e4f3; --hud:#6f9fc4;
     --font:"Inter",-apple-system,"Helvetica Neue",Arial,sans-serif;
     --font-display:"Share Tech Mono","Space Mono",monospace; --font-hand:"Share Tech Mono",monospace;
   }
@@ -180,12 +180,12 @@
   /* agent HUD viewfinder: corner brackets + a small classified-style tag framing the map */
   #hud-frame{position:absolute;inset:58px 12px 78px;pointer-events:none;z-index:4;display:none}
   [data-theme="sleek"] #hud-frame{display:block}
-  #hud-frame i{position:absolute;width:20px;height:20px;border:1.5px solid var(--grid);opacity:.6}
+  #hud-frame i{position:absolute;width:20px;height:20px;border:1.5px solid var(--hud,var(--grid));opacity:.6}
   #hud-frame i:nth-child(1){top:0;left:0;border-right:none;border-bottom:none}
   #hud-frame i:nth-child(2){top:0;right:0;border-left:none;border-bottom:none}
   #hud-frame i:nth-child(3){bottom:0;left:0;border-right:none;border-top:none}
   #hud-frame i:nth-child(4){bottom:0;right:0;border-left:none;border-top:none}
-  #hud-frame .hud-tag{position:absolute;top:-4px;left:28px;font-family:"Share Tech Mono",monospace;font-size:9px;letter-spacing:.22em;color:var(--grid);opacity:.62;white-space:nowrap}
+  #hud-frame .hud-tag{position:absolute;top:-4px;left:28px;font-family:"Share Tech Mono",monospace;font-size:9px;letter-spacing:.22em;color:var(--hud,var(--grid));opacity:.62;white-space:nowrap}
   .country,.region{stroke:var(--land-stroke);stroke-width:.18;fill:var(--land);cursor:pointer;pointer-events:all}
   .region.region-flash{stroke:var(--accent)!important;animation:regflash .55s ease-in-out 3}
   @keyframes regflash{0%,100%{stroke-width:1.2}50%{stroke-width:3.4}}
