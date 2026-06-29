@@ -946,9 +946,11 @@
           <div class="share-btns">
             <button class="btn primary addbtn" id="export-btn">Export backup</button>
             <button class="btn addbtn" id="import-btn">Import backup</button>
+            <button class="btn addbtn" id="sync-btn">Sync to cloud now</button>
           </div>
           <input type="file" id="import-file" accept="application/json,.json" style="display:none"/>
           <div id="backup-msg" class="lead" style="margin:10px 0 0;display:none"></div>
+          <div class="lead" id="cloud-sync-line" style="margin:10px 0 0;font-size:12px"></div>
           <div class="lead" id="app-ver-line" style="margin:12px 0 0;font-size:11px;opacity:.7"></div>
         </div>
         <div class="card" style="margin-top:14px">
@@ -2006,6 +2008,7 @@ function renderByYear(){
 
 // ---------------- account ----------------
 function renderAccount(){
+  try{ renderSyncLine(); }catch(_){}
   const visited=Object.values(state.marks).filter(m=>!isWish(m)).length;
   const wish=Object.values(state.marks).filter(m=>isWish(m)).length;
   const yset=new Set(); Object.values(state.marks).forEach(m=>visitsOf(m).forEach(v=>{ if(!(listById(v.listId)&&listById(v.listId).wish)&&v.year) yset.add(v.year); }));
@@ -2212,11 +2215,15 @@ async function applyBackup(obj){
   if(inp) inp.onchange=()=>{ const f=inp.files&&inp.files[0]; if(!f) return;
     const r=new FileReader();
     r.onload=()=>{ let obj; try{ obj=JSON.parse(r.result); }catch(e){ backupMsg('That file isn’t valid JSON.',false); inp.value=''; return; }
-      if(!confirm('Merge this backup into your map? It adds its journeys and countries to what you already have (nothing is removed).')){ inp.value=''; return; }
+      if(!confirm('Restore this backup? It replaces what is currently on your map with the contents of this file, then syncs it to the cloud.')){ inp.value=''; return; }
       backupMsg('Importing…');
       Promise.resolve().then(()=>applyBackup(obj)).then(()=>{ inp.value=''; }).catch(e=>{ backupMsg('Couldn’t read that backup. '+(e&&e.message||e)+'.',false); inp.value=''; });
     };
     r.readAsText(f); };
+  const syb=document.getElementById('sync-btn');
+  if(syb) syb.onclick=async()=>{ if(!cloudUser){ renderSyncLine(); return; } syb.disabled=true; const lbl=syb.textContent; syb.textContent='Syncing…';
+    try{ markDirty(); await pushCloud(true); }catch(e){ lastSync.state='error'; lastSync.msg=(e&&e.message)||String(e); renderSyncLine(); }
+    syb.disabled=false; syb.textContent=lbl; };
 })();
 
 // ---------------- passport share card (canvas → PNG) ----------------
@@ -3464,8 +3471,27 @@ function freshStartState(){
   seenBadges=new Set(); BADGES.forEach(b=>{ try{ if(b.test()) seenBadges.add(b.id); }catch(_){} });
   if(typeof wsel!=='undefined' && wsel) paintWorld();
 }
+// ---- cloud sync status (so a failed push is never silent) ----
+let lastSync={state:'idle',msg:'',ts:0,bytes:0,photos:'full'};
+function renderSyncLine(){ const el=document.getElementById('cloud-sync-line'); if(!el) return;
+  if(!sb){ el.textContent='Cloud sync unavailable (offline).'; el.style.color='var(--muted)'; return; }
+  if(!cloudUser){ el.textContent='Sign in to sync across devices.'; el.style.color='var(--muted)'; return; }
+  const kb=lastSync.bytes?(' · '+(lastSync.bytes/1024/1024>=1?(lastSync.bytes/1024/1024).toFixed(1)+' MB':Math.round(lastSync.bytes/1024)+' KB')):'';
+  if(lastSync.state==='syncing'){ el.textContent='Syncing to cloud…'; el.style.color='var(--muted)'; return; }
+  if(lastSync.state==='ok'){ el.textContent='✓ Synced to cloud'+(lastSync.photos==='strip'?' (text + map only; photos were too large for the cloud, but they stay on this device and in your exports)':(lastSync.photos==='shrunk'?' (photos downsized to fit the cloud)':''))+kb+'.'; el.style.color='var(--muted)'; return; }
+  if(lastSync.state==='error'){ el.textContent='⚠ Cloud sync failed: '+(lastSync.msg||'unknown error')+kb+'. Your data is safe on this device. Export a backup to be sure.'; el.style.color='var(--accent)'; return; }
+  el.textContent='Tap “Sync to cloud now” to back up across devices.'; el.style.color='var(--muted)'; }
+function _docBytes(doc){ try{ return new Blob([JSON.stringify(doc)]).size; }catch(_){ try{ return JSON.stringify(doc).length; }catch(__){ return 0; } } }
+// Build a copy of the backup with journal photos removed (text/routes/countries still sync).
+function _stripPhotos(backup){ const d=JSON.parse(JSON.stringify(backup));
+  try{ (d.data.journeys||[]).forEach(j=>{ (j.journal||[]).forEach(e=>{ if(e&&e.photo) e.photo=null; }); }); }catch(_){}
+  return d; }
+async function _sendDoc(doc,ts){ try{ const {error}=await sb.from('user_data').upsert({ user_id:cloudUser.id, data:doc, updated_at:ts },{ onConflict:'user_id' }); return error||null; }
+  catch(e){ return e||new Error('network error'); } }
 // Write the whole document to the cloud as the next revision. `force` lets a brand-new account
 // save its seed; otherwise we never create a seed-only row before we've seen the cloud.
+// Tiered: try the full doc; if the write fails (e.g. payload too large with photos), retry WITHOUT
+// photos so the core data always syncs. The status is surfaced in the Backup card, never silent.
 async function pushCloud(force){
   if(!sb||!cloudUser) return;
   if(!force && !localHasRealData() && syncedRev===0) return;
@@ -3475,9 +3501,17 @@ async function pushCloud(force){
   const nextRev=Math.max((syncedRev||0)+1, Math.floor(Date.now()/1000));
   const doc=fullBackup(); doc.rev=nextRev; const ts=new Date().toISOString(); doc._ts=ts;
   try{ doc.appVer=(typeof APP_VER!=='undefined'?APP_VER:''); }catch(_){}   // stamp which build wrote this
-  try{ const {error}=await sb.from('user_data').upsert({ user_id:cloudUser.id, data:doc, updated_at:ts },{ onConflict:'user_id' });
-    if(!error) setSynced(nextRev);
-  }catch(e){}
+  lastSync.state='syncing'; lastSync.bytes=_docBytes(doc); renderSyncLine();
+  let err=await _sendDoc(doc,ts);
+  let photos='full';
+  if(err){ // most likely the payload (photos) is too large -> retry with photos stripped so core data syncs
+    const slim=_stripPhotos(doc); photos='strip';
+    const err2=await _sendDoc(slim,ts);
+    if(!err2){ err=null; lastSync.bytes=_docBytes(slim); }
+  }
+  if(err){ lastSync.state='error'; lastSync.msg=(err&&err.message)||String(err); renderSyncLine(); return; }
+  setSynced(nextRev);
+  lastSync.state='ok'; lastSync.ts=Date.now(); lastSync.photos=photos; renderSyncLine();
 }
 function scheduleCloudPush(){ if(!sb||!cloudUser) return; clearTimeout(cloudPushTimer); cloudPushTimer=setTimeout(()=>pushCloud(),2500); }
 // Read this account's cloud document and reconcile with local. Whole-document, never field-merged.
