@@ -803,6 +803,23 @@
       radial-gradient(circle at 0% 100%, #0000 86px, rgba(221,67,39,.24) 86px 99px, rgba(238,125,53,.24) 99px 112px, rgba(243,205,132,.28) 112px 125px, rgba(46,140,162,.24) 125px 138px, rgba(26,44,82,.24) 138px 151px, #0000 151px)}
   /* RETRO: chunkier, rounder card borders (70s) */
   [data-theme="retro"] .card,[data-theme="retro"] .iti-card{border-width:2px;border-radius:18px}
+  /* DISCO: a subtle scattered field of glowing mirror-ball specks (cyan / magenta / gold / white) */
+  [data-theme="disco"] body{background-color:var(--ocean);background-repeat:repeat;
+    background-image:
+      radial-gradient(circle, rgba(31,227,203,.5) 0 1.5px, rgba(31,227,203,.1) 2.4px, transparent 4.5px),
+      radial-gradient(circle, rgba(255,43,214,.46) 0 1.7px, rgba(255,43,214,.09) 2.6px, transparent 4.8px),
+      radial-gradient(circle, rgba(245,230,61,.46) 0 1.4px, rgba(245,230,61,.08) 2.2px, transparent 4.2px),
+      radial-gradient(circle, rgba(255,255,255,.4) 0 1.1px, transparent 1.8px);
+    background-size:172px 172px, 214px 214px, 188px 188px, 138px 138px;
+    background-position:22px 44px, 124px 152px, 82px 28px, 150px 96px}
+  /* BUBBLEGUM: bigger soft floating bubbles layered over the existing fine bubble texture */
+  [data-theme="cute"] body{background-color:var(--ocean);background-repeat:repeat;
+    background-image:
+      radial-gradient(circle at 50% 50%, transparent 0 19%, rgba(255,255,255,.34) 20% 22.4%, transparent 23.6%),
+      radial-gradient(circle at 50% 50%, transparent 0 14.5%, rgba(240,107,176,.28) 15.5% 17.6%, transparent 18.8%),
+      var(--tex);
+    background-size:240px 240px, 154px 154px, var(--tex-size, 58px 58px);
+    background-position:34px 62px, 150px 168px, 0 0}
 </style>
 </head>
 <body>
