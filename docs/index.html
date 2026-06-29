@@ -36,7 +36,7 @@
   }
   [data-theme="sleek"]{ /* AGENT - undercover / tactical HUD: midnight blue, glowing blue-white grid, mono type */
     --on-accent:#06182e;
-    --ocean:#0a1525; --ocean-hi:#0e2138; --land:#17283f; --land-stroke:#0a1525;
+    --ocean:#0a1525; --ocean-hi:#0e2138; --land:#17283f; --land-stroke:#9cc0de;
     --paper:#0c1a2e; --ink:#dde9f5; --muted:#7d92ab; --rule:#274059;
     --field:#102339; --hover:#16304d; --accent:#56c4ea; --accent2:#9bb9d6; --gold:#a8c6e0;
     --c-lived:#e9f4fd; --c-visited:#56c4ea; --c-wish:#3a557a;
@@ -215,6 +215,8 @@
   @keyframes regflash{0%,100%{stroke-width:1.2}50%{stroke-width:3.4}}
   /* wish list = a lighter version of the unmarked land color for each vibe (e.g. retro gray -> light gray) */
   .country.wish,.region.wish{fill:var(--c-wish);stroke:var(--land-stroke);stroke-dasharray:none}
+  /* Spyware: a crisper wireframe so the light HUD borders between countries read clearly */
+  [data-theme="sleek"] .country,[data-theme="sleek"] .region{stroke-width:.3;stroke-opacity:.7}
 
   /* floating controls over a map */
   .map-overlay-title{position:absolute;top:12px;left:16px;pointer-events:none}
@@ -3704,7 +3706,7 @@ Object.keys(VIBE_DISPLAY).forEach(vibe=>{
   }catch(_){}
 });
 // app version (build.mjs injects the real number) so you can confirm you're on the latest build
-const APP_VER='v79';
+const APP_VER='v80';
 try{ const vl=document.getElementById('app-ver-line'); if(vl) vl.textContent='Wanderlines '+(APP_VER.indexOf('APP_VER')>=0?'(dev)':APP_VER); }catch(_){}
 // paint our own line-icons into every static [data-icon] slot (no emoji)
 document.querySelectorAll('[data-icon]').forEach(el=>{ el.innerHTML=ICON(el.dataset.icon, +(el.dataset.isz)||18); });
