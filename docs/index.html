@@ -95,11 +95,12 @@
   [data-theme="sleek"] svg.map{background:
     radial-gradient(60% 47% at 50% 47%, rgba(255,255,255,.26), rgba(255,255,255,.08) 44%, rgba(255,255,255,0) 72%),
     radial-gradient(150% 140% at 50% 54%, rgba(3,9,20,0) 42%, rgba(3,9,20,.92) 120%)}
-  /* classic: a light cream wash softens (fades, not flattens) the body parchment to a subtle whisper under the map */
   [data-theme="classic"] svg.map{background:
     radial-gradient(70% 56% at 50% 46%, rgba(255,245,216,.34), rgba(255,245,216,0) 64%),
-    radial-gradient(135% 126% at 50% 48%, rgba(74,48,22,0) 56%, rgba(58,36,14,.5) 122%),
-    linear-gradient(rgba(247,239,222,.42), rgba(247,239,222,.42))}
+    radial-gradient(135% 126% at 50% 48%, rgba(74,48,22,0) 56%, rgba(58,36,14,.5) 122%)}
+  /* Classic: the world view's own ocean gradient is opaque, which hid the parchment body behind it.
+     Make it semi-transparent ONLY for classic so the body parchment shows through as a subtle whisper. */
+  [data-theme="classic"] #view-world{background:radial-gradient(circle at 30% 18%, rgba(241,222,195,.5), rgba(230,206,177,.56))}
   /* retro: bring the 70s rainbow onto the world map itself - an arch in two corners behind the continents */
   [data-theme="retro"] svg.map{background:
     radial-gradient(circle at 100% 0%, #0000 116px, rgba(26,44,82,.40) 116px 128px, rgba(46,140,162,.40) 128px 140px, rgba(243,205,132,.46) 140px 152px, rgba(238,125,53,.46) 152px 164px, rgba(221,67,39,.46) 164px 176px, #0000 176px),
@@ -812,23 +813,6 @@
       radial-gradient(circle at 0% 100%, #0000 86px, rgba(221,67,39,.24) 86px 99px, rgba(238,125,53,.24) 99px 112px, rgba(243,205,132,.28) 112px 125px, rgba(46,140,162,.24) 125px 138px, rgba(26,44,82,.24) 138px 151px, #0000 151px)}
   /* RETRO: chunkier, rounder card borders (70s) */
   [data-theme="retro"] .card,[data-theme="retro"] .iti-card{border-width:2px;border-radius:18px}
-  /* DISCO: a subtle scattered field of glowing mirror-ball specks (cyan / magenta / gold / white) */
-  [data-theme="disco"] body{background-color:var(--ocean);background-repeat:repeat;
-    background-image:
-      radial-gradient(circle, rgba(31,227,203,.5) 0 1.5px, rgba(31,227,203,.1) 2.4px, transparent 4.5px),
-      radial-gradient(circle, rgba(255,43,214,.46) 0 1.7px, rgba(255,43,214,.09) 2.6px, transparent 4.8px),
-      radial-gradient(circle, rgba(245,230,61,.46) 0 1.4px, rgba(245,230,61,.08) 2.2px, transparent 4.2px),
-      radial-gradient(circle, rgba(255,255,255,.4) 0 1.1px, transparent 1.8px);
-    background-size:172px 172px, 214px 214px, 188px 188px, 138px 138px;
-    background-position:22px 44px, 124px 152px, 82px 28px, 150px 96px}
-  /* BUBBLEGUM: bigger soft floating bubbles layered over the existing fine bubble texture */
-  [data-theme="cute"] body{background-color:var(--ocean);background-repeat:repeat;
-    background-image:
-      radial-gradient(circle at 50% 50%, transparent 0 19%, rgba(255,255,255,.34) 20% 22.4%, transparent 23.6%),
-      radial-gradient(circle at 50% 50%, transparent 0 14.5%, rgba(240,107,176,.28) 15.5% 17.6%, transparent 18.8%),
-      var(--tex);
-    background-size:240px 240px, 154px 154px, var(--tex-size, 58px 58px);
-    background-position:34px 62px, 150px 168px, 0 0}
 </style>
 </head>
 <body>
@@ -3718,7 +3702,7 @@ Object.keys(VIBE_DISPLAY).forEach(vibe=>{
   }catch(_){}
 });
 // app version (build.mjs injects the real number) so you can confirm you're on the latest build
-const APP_VER='v76';
+const APP_VER='v77';
 try{ const vl=document.getElementById('app-ver-line'); if(vl) vl.textContent='Wanderlines '+(APP_VER.indexOf('APP_VER')>=0?'(dev)':APP_VER); }catch(_){}
 // paint our own line-icons into every static [data-icon] slot (no emoji)
 document.querySelectorAll('[data-icon]').forEach(el=>{ el.innerHTML=ICON(el.dataset.icon, +(el.dataset.isz)||18); });
