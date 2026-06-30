@@ -3521,14 +3521,28 @@ function localHasRealData(){ const seed=_seedJourneyIds();
 }
 // Replace the ENTIRE in-memory state from a cloud/backup document. No field-by-field merging:
 // what the document says IS the state. This is what stops countries from accumulating forever.
+// When we replace local journeys with a cloud/backup copy, that copy may have had its photos stripped
+// to fit the cloud. NEVER drop a photo we still hold locally: re-attach any local photo the incoming
+// copy is missing, matched by journey id + entry (date+text, with an index fallback).
+function _reattachPhotos(newJ, oldJ){
+  if(!Array.isArray(newJ)||!Array.isArray(oldJ)) return newJ;
+  const oldById=new Map(); oldJ.forEach(j=>{ if(j&&j.id) oldById.set(j.id,j); });
+  const ek=e=>((e&&e.date)||'')+'|'+(((e&&e.text)||'').slice(0,60));
+  newJ.forEach(j=>{ if(!j||!Array.isArray(j.journal)) return; const oj=oldById.get(j.id); if(!oj||!Array.isArray(oj.journal)) return;
+    const byKey=new Map(); oj.journal.forEach((e,i)=>{ if(e&&e.photo){ byKey.set(ek(e),e.photo); byKey.set('#'+i,e.photo); } });
+    j.journal.forEach((e,i)=>{ if(e && !e.photo){ const p=byKey.get(ek(e))||byKey.get('#'+i); if(p) e.photo=p; } });
+  });
+  return newJ;
+}
 function adoptDocument(doc){
   const d=(doc&&doc.data&&typeof doc.data==='object')?doc.data:(doc||{});
+  const _localJ=Array.isArray(state.journeys)?state.journeys:[];   // keep our photos before we replace
   state.marks       = (d.marks       && typeof d.marks==='object')       ? d.marks       : {};
   state.regionMarks = (d.regionMarks && typeof d.regionMarks==='object') ? d.regionMarks : {};
   state.places      = (d.places      && typeof d.places==='object')      ? d.places      : {};
   state.airports    = (d.airports    && typeof d.airports==='object')    ? d.airports    : {};
   state.lists       = (Array.isArray(d.lists) && d.lists.length)         ? d.lists       : JSON.parse(JSON.stringify(DEFAULT_LISTS));
-  state.journeys    = Array.isArray(d.journeys)                          ? d.journeys    : [];
+  state.journeys    = Array.isArray(d.journeys)                          ? _reattachPhotos(d.journeys,_localJ) : _localJ;
   if(d.year) state.year=d.year;
   state.extraUnesco = Array.isArray(d.extraUnesco) ? d.extraUnesco : [];
   state.extraParks  = Array.isArray(d.extraParks)  ? d.extraParks  : [];
@@ -3730,13 +3744,31 @@ Object.keys(VIBE_DISPLAY).forEach(vibe=>{
   }catch(_){}
 });
 // app version (build.mjs injects the real number) so you can confirm you're on the latest build
-const APP_VER='v87';
+const APP_VER='v88';
 try{ const vl=document.getElementById('app-ver-line'); if(vl) vl.textContent='Wanderlines '+(APP_VER.indexOf('APP_VER')>=0?'(dev)':APP_VER); }catch(_){}
 // paint our own line-icons into every static [data-icon] slot (no emoji)
 document.querySelectorAll('[data-icon]').forEach(el=>{ el.innerHTML=ICON(el.dataset.icon, +(el.dataset.isz)||18); });
 // ---------------- persistence: everything you log survives reloads ----------------
 let lastSaveTs='';
+// ---- IndexedDB photo backstop ----
+// Photos are too big for localStorage (~5MB cap, esp. iOS Safari) and the cloud jsonb, so on top of
+// those we ALWAYS stash every journal photo in IndexedDB (large quota) and restore them on load if the
+// main copy ever dropped them. Purely additive: if IDB fails it's caught and nothing else changes.
+let _photoDB=null;
+function _openPhotoDB(){ return new Promise(res=>{ if(_photoDB) return res(_photoDB);
+  try{ const r=indexedDB.open('wl_photos',1); r.onupgradeneeded=()=>{ try{ r.result.createObjectStore('p'); }catch(_){} };
+    r.onsuccess=()=>{ _photoDB=r.result; res(_photoDB); }; r.onerror=()=>res(null); }catch(_){ res(null); } }); }
+function _photoKey(jId,e){ return (jId||'')+'|'+((e&&e.date)||'')+'|'+(((e&&e.text)||'').slice(0,60)); }
+async function savePhotosIDB(){ try{ const db=await _openPhotoDB(); if(!db) return;
+  const map={}; (state.journeys||[]).forEach(j=>{ if(!j||!Array.isArray(j.journal)) return; j.journal.forEach(e=>{ if(e&&typeof e.photo==='string'&&e.photo.length>200) map[_photoKey(j.id,e)]=e.photo; }); });
+  const tx=db.transaction('p','readwrite'); tx.objectStore('p').put(map,'all'); }catch(_){} }
+async function loadPhotosIDB(){ try{ const db=await _openPhotoDB(); if(!db) return null;
+  return await new Promise(res=>{ const g=db.transaction('p','readonly').objectStore('p').get('all'); g.onsuccess=()=>res(g.result||null); g.onerror=()=>res(null); }); }catch(_){ return null; } }
+async function restorePhotosFromIDB(){ const map=await loadPhotosIDB(); if(!map) return false; let changed=false;
+  (state.journeys||[]).forEach(j=>{ if(!j||!Array.isArray(j.journal)) return; j.journal.forEach(e=>{ if(e && !e.photo){ const p=map[_photoKey(j.id,e)]; if(p){ e.photo=p; changed=true; } } }); });
+  return changed; }
 function saveStateLocal(){ lastSaveTs=new Date().toISOString();
+  savePhotosIDB();   // capture photos to IndexedDB first, so they survive even if localStorage can't hold them
   const payload={ _ts:lastSaveTs,
     marks:state.marks, regionMarks:state.regionMarks, places:state.places,
     lists:state.lists, journeys:state.journeys, year:state.year, extraUnesco:state.extraUnesco, extraParks:state.extraParks, airports:state.airports };
@@ -3786,6 +3818,9 @@ try{ const bak=JSON.parse(localStorage.getItem('wl_jbak')||'null');
 dropExampleIfReal();           // never show the Example Journey alongside real ones
 migrateStopNotesToJournal();   // fold any legacy per-stop notes into the journal on local load
 backfillJourneyLandmarks();    // surface park/UNESCO journey stops in their lists
+// Restore any photos that localStorage couldn't hold (or that a sync dropped) from the IndexedDB backstop.
+restorePhotosFromIDB().then(ch=>{ if(ch){ try{ if(document.getElementById('view-itinerary')&&!document.getElementById('view-itinerary').classList.contains('hidden')) renderItinerary&&renderItinerary(); }catch(_){}
+  try{ if(typeof refreshViews==='function') refreshViews(); }catch(_){} } }).catch(()=>{});
 setTimeout(shrinkExistingPhotos,1200);   // quietly shrink any oversized photos saved before compression existed
 loadCountryData();
 let savedNative=false; try{ savedNative=localStorage.getItem('wl_native')==='1'; }catch(e){} state.nativeNames=savedNative;
